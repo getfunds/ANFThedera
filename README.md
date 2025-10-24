@@ -20,10 +20,6 @@ A next-generation NFT marketplace built on Hedera that combines AI-powered art g
 - [Deployment & Setup](#-deployment--setup)
 - [Environment Configuration](#-environment-configuration)
 - [Deployed Hedera IDs](#-deployed-hedera-ids-testnet)
-- [How It Works](#-how-it-works)
-- [Smart Contracts](#-smart-contracts)
-- [Contributing](#-contributing)
-- [License](#-license)
 
 ---
 
@@ -47,12 +43,22 @@ ANFT extensively leverages multiple Hedera services to create a fast, affordable
 #### Why We Use HTS
 We chose HTS for NFT creation and management because it provides **native token functionality** at the protocol level with **predictable, low-cost minting** ($0.001 per NFT mint) and **built-in royalty support**. Unlike Ethereum-based ERC-721 implementations that require complex smart contracts and high gas fees, HTS enables instant NFT creation with association, transfer, and ownership tracking—all handled by Hedera's network layer. This drastically reduces development complexity and ensures creators can mint NFTs without worrying about fluctuating costs or failed transactions.
 
+#### Implementation Files
+- **`src/utils/bladeWalletNFTMinting.js`** - Core NFT minting workflow with Blade Wallet integration
+- **`src/utils/wallets/blade.js`** - Blade Wallet adapter with token association logic
+- **`src/app/create/page.js`** - AI NFT creation page (triggers minting)
+- **`src/app/paint/page.js`** - Digital painting studio page (triggers minting)
+- **`src/components/ListNFTModal.js`** - NFT listing interface with approval handling
+
 #### Transaction Types Executed
-- **`TokenCreateTransaction`** - Creates new NFT collections with customizable metadata, supply limits, and royalty configurations
-- **`TokenMintTransaction`** - Mints individual NFTs with unique metadata URIs (IPFS CIDs) and serial numbers
-- **`TokenAssociateTransaction`** - Associates tokens with user accounts before transfers (Hedera security requirement)
-- **`TokenNftTransfer`** - Transfers NFT ownership between accounts (via marketplace purchases)
-- **`AccountAllowanceApproveTransaction`** - Grants marketplace contract permission to transfer NFTs on behalf of sellers
+
+| Transaction | Purpose | Implementation File(s) |
+|-------------|---------|------------------------|
+| **`TokenCreateTransaction`** | Creates new NFT collections with customizable metadata, supply limits, and royalty configurations | `src/utils/bladeWalletNFTMinting.js`  |
+| **`TokenMintTransaction`** | Mints individual NFTs with unique metadata URIs (IPFS CIDs) and serial numbers | `src/utils/bladeWalletNFTMinting.js`  |
+| **`TokenAssociateTransaction`** | Associates tokens with user accounts before transfers (Hedera security requirement) | `src/utils/wallets/blade.js` <br/>`src/utils/bladeWalletNFTMinting.js`  |
+| **`TokenNftTransfer`** | Transfers NFT ownership between accounts (via marketplace purchases) | `src/utils/marketplaceHTSPurchaseFinal.js` <br/>`src/utils/htsNFTTransfer.js` |
+| **`AccountAllowanceApproveTransaction`** | Grants marketplace contract permission to transfer NFTs on behalf of sellers | `src/components/ListNFTModal.js` <br/>`src/utils/marketplace.js` |
 
 #### Economic Justification
 HTS's **$0.001 fixed minting cost** makes ANFT economically viable for both casual creators and professional artists. This cost reduction enables:
@@ -70,11 +76,23 @@ The predictable fee structure also allows ANFT to offer **transparent pricing** 
 #### Why We Use HCS for Decentralized Identities (DIDs)
 We implemented DIDs on HCS because it provides **immutable, timestamped identity records** at a cost of **$0.0001 per message**. DIDs are critical for establishing creator authenticity and preventing art theft. By storing DID documents and public keys on HCS topics, we create a **permanent, verifiable identity layer** that exists independently of ANFT's servers. If our platform disappeared tomorrow, creators' identities and ownership proofs would remain intact on Hedera's ledger.
 
+#### Implementation Files
+- **`src/utils/hederaDID.js`** - Core DID creation, registration, and resolution logic
+- **`src/hooks/useDID.js`** - React hook for managing DID state across components
+- **`src/components/DIDRegistrationModal.js`** - User interface for DID registration wizard
+- **`src/utils/attestation.js`** - Attestation creation and HCS message submission
+- **`src/pages/api/did/check.js`** - Server API to check for existing DIDs
+- **`src/pages/api/did/register.js`** - Server API for DID registration fallback
+- **`src/pages/api/did/resolve.js`** - Server API to resolve DID documents
+
 #### Transaction Types Executed
-- **`TopicCreateTransaction`** - Creates personal HCS topics for each user's DID document
-- **`TopicMessageSubmitTransaction`** - Submits DID registration and update messages
-- **`FileCreateTransaction`** - Stores DID documents on Hedera File Service for retrieval
-- **`FileAppendTransaction`** - Updates DID documents when creators modify their profiles
+
+| Transaction | Purpose | Implementation File(s) |
+|-------------|---------|------------------------|
+| **`TopicCreateTransaction`** | Creates personal HCS topics for each user's DID document | `src/utils/hederaDID.js` <br/>`src/utils/attestation.js` |
+| **`TopicMessageSubmitTransaction`** | Submits DID registration and attestation messages | `src/utils/hederaDID.js` <br/>`src/utils/attestation.js` |
+| **`FileCreateTransaction`** | Stores DID documents on Hedera File Service for retrieval | `src/utils/hederaDID.js` |
+| **`FileAppendTransaction`** | Appends additional data to DID files when needed | `src/utils/hederaDID.js` |
 
 #### Why HCS for Attestations
 HCS also powers our **on-chain attestation system**, which creates an immutable record proving:
@@ -102,12 +120,23 @@ The **ABFT (Asynchronous Byzantine Fault Tolerant)** consensus provided by HCS e
 #### Why We Use HSCS for the Marketplace
 We deployed our NFT Marketplace smart contract on HSCS because it combines **EVM compatibility** (allowing us to use Solidity and OpenZeppelin libraries) with **Hedera's fee structure and finality guarantees**. The marketplace contract handles listing creation, purchase execution, platform fee collection (2.5%), and NFT transfers—all while interacting seamlessly with HTS tokens via Hedera's precompiled contracts.
 
+#### Implementation Files
+- **`contracts/NFTMarketplace_HTS_Working.sol`** - Main marketplace smart contract (Solidity)
+- **`src/utils/marketplace.js`** - Marketplace interaction utilities and contract calls
+- **`src/utils/marketplaceHTSPurchaseFinal.js`** - Purchase execution logic with HTS integration
+- **`src/utils/marketplaceDiagnostics.js`** - Diagnostic tools for marketplace operations
+- **`src/app/marketplace/page.js`** - Marketplace UI (browse and purchase NFTs)
+- **`src/components/ListNFTModal.js`** - List NFT modal with contract interaction
+
 #### Transaction Types Executed
-- **`ContractCreateTransaction`** - Deploys the NFTMarketplace contract with platform fee recipient
-- **`ContractExecuteTransaction` (createListing)** - Sellers list NFTs with price and duration
-- **`ContractExecuteTransaction` (purchaseNFT)** - Buyers purchase listed NFTs with HBAR
-- **`ContractExecuteTransaction` (cancelListing)** - Sellers cancel active listings
-- **`ContractCallQuery`** - Retrieves listing details, active listings, and user listings
+
+| Transaction | Purpose | Implementation File(s) |
+|-------------|---------|------------------------|
+| **`ContractCreateTransaction`** | Deploys the NFTMarketplace contract with platform fee recipient | Manual deployment via Remix IDE or deployment script |
+| **`ContractExecuteTransaction` (createListing)** | Sellers list NFTs with price and duration | `src/utils/marketplace.js` <br/>`src/components/ListNFTModal.js` |
+| **`ContractExecuteTransaction` (purchaseNFT)** | Buyers purchase listed NFTs with HBAR | `src/utils/marketplaceHTSPurchaseFinal.js` <br/>`src/app/marketplace/page.js` |
+| **`ContractExecuteTransaction` (cancelListing)** | Sellers cancel active listings | `src/utils/marketplace.js` |
+| **`ContractCallQuery`** | Retrieves listing details, active listings, and user listings | `src/utils/marketplace.js` <br/>`src/app/marketplace/page.js` |
 
 The marketplace contract uses **HTS precompiled contracts** (`address(0x167)`) to interact directly with native HTS NFTs, eliminating the need for wrapper contracts or token bridging. This reduces transaction costs by ~40% compared to ERC-721 equivalents.
 
@@ -120,11 +149,18 @@ Our **2.5% platform fee** is competitive with industry standards (OpenSea: 2.5%,
 #### Why We Use HFS
 We use HFS to store **DID documents** and **large metadata payloads** that exceed HCS's message size limits. HFS provides immutable, content-addressed storage, which is ideal for structured identity data that needs to be publicly retrievable.
 
+#### Implementation Files
+- **`src/utils/hederaDID.js`** - DID document creation and file storage
+- **`src/pages/api/did/resolve.js`** - Server API for retrieving DID files from HFS
+
 #### Transaction Types Executed
-- **`FileCreateTransaction`** - Creates files to store DID documents (~1-2 KB)
-- **`FileAppendTransaction`** - Appends additional data to files when DID updates occur
-- **`FileInfoQuery`** - Retrieves file metadata and content hashes
-- **`FileContentsQuery`** - Fetches full DID documents for verification
+
+| Transaction | Purpose | Implementation File(s) |
+|-------------|---------|------------------------|
+| **`FileCreateTransaction`** | Creates files to store DID documents (~1-2 KB) | `src/utils/hederaDID.js` |
+| **`FileAppendTransaction`** | Appends additional data to files when DID updates occur | `src/utils/hederaDID.js` |
+| **`FileInfoQuery`** | Retrieves file metadata and content hashes | `src/pages/api/did/resolve.js` |
+| **`FileContentsQuery`** | Fetches full DID documents for verification | `src/pages/api/did/resolve.js` |
 
 This makes HFS ideal for storing immutable identity credentials that need to be **publicly accessible but rarely updated**.
 
@@ -133,12 +169,31 @@ This makes HFS ideal for storing immutable identity credentials that need to be 
 ### 5. **Hedera Mirror Node**
 
 #### Why We Use Mirror Nodes
-Mirror nodes provide **public REST APIs** for querying historical transactions, account balances, token metadata, and HCS messages. ANFT uses mirror nodes extensively for:
+Mirror nodes provide **free, public REST APIs** for querying historical transactions, account balances, token metadata, and HCS messages. ANFT uses mirror nodes extensively for:
 - **DID Resolution**: Check existing DID documents before creating new ones
 - **Transaction Verification**: Confirming NFT mints and transfers completed successfully
 - **Marketplace Data**: Loading active listings and purchase history
 - **Attestation Retrieval**: Displaying on-chain provenance proofs in NFT metadata
 - **Account Lookups**: Converting EVM addresses to Hedera account IDs for approval checks
+
+#### Implementation Files
+- **`src/utils/hederaDID.js`** - Mirror Node queries for DID topic and transaction verification
+- **`src/utils/bladeWalletNFTMinting.js`** - Transaction confirmation via Mirror Node
+- **`src/utils/attestation.js`** - Mirror Node queries for attestation topic messages
+- **`src/utils/marketplaceHTSPurchaseFinal.js`** - EVM address to Account ID conversion
+- **`src/utils/marketplaceDiagnostics.js`** - Marketplace approval and balance checks
+- **`src/pages/api/did/check.js`** - Mirror Node API for checking existing DIDs
+- **`src/app/my-nfts/page.js`** - Fetching user's NFT collection via Mirror Node
+
+#### Mirror Node Queries Used
+
+| Query Type | Purpose | Implementation File(s) |
+|------------|---------|------------------------|
+| **`GET /api/v1/transactions/{transactionId}`** | Verify transaction completion and retrieve results | `src/utils/hederaDID.js` <br/>`src/utils/bladeWalletNFTMinting.js` |
+| **`GET /api/v1/topics/{topicId}/messages`** | Retrieve HCS messages (DIDs, attestations) | `src/utils/attestation.js` <br/>`src/pages/api/did/check.js` |
+| **`GET /api/v1/tokens/{tokenId}/nfts`** | Get NFT metadata and ownership info | `src/app/my-nfts/page.js` <br/>`src/app/marketplace/page.js` |
+| **`GET /api/v1/accounts/{accountId}`** | Convert EVM addresses to Hedera account IDs | `src/utils/marketplaceHTSPurchaseFinal.js` |
+| **`GET /api/v1/accounts/{accountId}/allowances/nfts`** | Check NFT approval status for marketplace | `src/utils/marketplaceDiagnostics.js` <br/>`src/utils/marketplaceHTSPurchaseFinal.js` |
 
 By leveraging mirror nodes, ANFT delivers a **rich, data-driven user experience** (transaction history, NFT galleries, marketplace analytics) at **zero marginal cost**.
 
@@ -381,6 +436,62 @@ Step 9: Mirror Node confirmation
 - **IPFS**: Filebase (S3-compatible gateway)
 - **On-Chain**: Hedera File Service (HFS) for DID documents
 - **Consensus**: Hedera Consensus Service (HCS) for attestations
+
+---
+
+## 🔑 Key Components
+
+### **Frontend Components**
+
+| Component | File Path | Purpose |
+|-----------|-----------|---------|
+| **Landing Page** | `src/app/page.js` | Main landing page with platform overview |
+| **AI NFT Creation** | `src/app/create/page.js` | AI art generation interface with Hugging Face integration |
+| **Digital Painting Studio** | `src/app/paint/page.js` | Canvas-based drawing tool with multiple brush types |
+| **NFT Marketplace** | `src/app/marketplace/page.js` | Browse and purchase listed NFTs |
+| **My NFTs Gallery** | `src/app/my-nfts/page.js` | User's NFT collection with listing options |
+| **Navbar** | `src/components/Navbar.js` | Global navigation with wallet connection |
+| **Wallet Modal** | `src/components/WalletModal.js` | Blade Wallet connection interface |
+| **DID Registration Modal** | `src/components/DIDRegistrationModal.js` | Guided wizard for creator identity setup |
+| **List NFT Modal** | `src/components/ListNFTModal.js` | NFT listing form with marketplace integration |
+
+### **Backend Utilities & APIs**
+
+| Utility/API | File Path | Purpose |
+|-------------|-----------|---------|
+| **Blade Wallet NFT Minting** | `src/utils/bladeWalletNFTMinting.js` | Core NFT minting workflow with HTS integration |
+| **Hedera DID Management** | `src/utils/hederaDID.js` | DID creation, registration, and resolution |
+| **Attestation System** | `src/utils/attestation.js` | On-chain attestation creation via HCS |
+| **Content Hashing** | `src/utils/contentHashing.js` | SHA-256 hashing for artwork provenance |
+| **Artwork Finalization** | `src/utils/artworkFinalization.js` | Combines hashing, IPFS upload, and metadata preparation |
+| **AI Image Generation** | `src/utils/aiImageGeneration.js` | Hugging Face Inference Providers API integration |
+| **Filebase IPFS** | `src/utils/filebaseIPFS.js` | S3-compatible IPFS upload utilities |
+| **Marketplace Logic** | `src/utils/marketplace.js` | Smart contract interaction for listing/trading |
+| **Marketplace Purchase** | `src/utils/marketplaceHTSPurchaseFinal.js` | HTS NFT purchase execution |
+| **Blade Wallet Adapter** | `src/utils/wallets/blade.js` | Blade Wallet integration and token association |
+| **DID Check API** | `src/pages/api/did/check.js` | Server endpoint to verify existing DIDs |
+| **DID Register API** | `src/pages/api/did/register.js` | Server endpoint for DID creation fallback |
+| **DID Resolve API** | `src/pages/api/did/resolve.js` | Server endpoint to fetch DID documents |
+| **IPFS Upload API** | `src/pages/api/upload-to-ipfs.js` | Server endpoint for metadata upload |
+| **File Upload API** | `src/pages/api/upload-file-to-filebase.js` | Server endpoint for image upload |
+| **Attestation Verify API** | `src/pages/api/attestation/verify.js` | Server endpoint to validate attestations |
+
+### **React Hooks**
+
+| Hook | File Path | Purpose |
+|------|-----------|---------|
+| **useDID** | `src/hooks/useDID.js` | Manages DID state and orchestrates creation/registration |
+| **useWallet** | `src/context/WalletContext.js` | Global wallet connection state management |
+
+### **Smart Contracts**
+
+| Contract | File Path | Purpose |
+|----------|-----------|---------|
+| **NFT Marketplace (HTS)** | `contracts/NFTMarketplace_HTS_Working.sol` | Main marketplace contract with HTS integration |
+| **NFT Marketplace (Remix)** | `contracts/NFTMarketplace_Remix_Compatible.sol` | Remix IDE compatible version |
+| **NFT Marketplace (Simple)** | `contracts/NFTMarketplace_Simple_Working.sol` | Simplified marketplace implementation |
+| **Prompt Vault** | `contracts/PromptVault.sol` | Encrypted prompt storage (optional) |
+| **AI Art NFT** | `contracts/AIArtNFT.sol` | Basic ERC-721 contract (reference) |
 
 ---
 
