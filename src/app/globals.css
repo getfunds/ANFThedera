@@ -1,27 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 :root {
+  /* Premium Neutral Palette - Refined Grays */
+  --neutral-50: #fafbfc;
+  --neutral-100: #f4f5f7;
+  --neutral-200: #e8eaed;
+  --neutral-300: #d1d5db;
+  --neutral-400: #9ca3af;
+  --neutral-500: #6b7280;
+  --neutral-600: #4b5563;
+  --neutral-700: #374151;
+  --neutral-800: #1f2937;
+  --neutral-900: #111827;
+  
+  /* Authentic Brand Identity - Deep Teal to Electric Blue */
+  --brand-50: #ecfdf5;
+  --brand-100: #d1fae5;
+  --brand-200: #a7f3d0;
+  --brand-300: #6ee7b7;
+  --brand-400: #34d399;
+  --brand-500: #0d9488;
+  --brand-600: #0f766e;
+  --brand-700: #115e59;
+  --brand-800: #134e4a;
+  --brand-900: #0f3a38;
+  
+  /* Premium Accent - Royal Purple for Trust */
+  --accent-50: #faf5ff;
+  --accent-100: #f3e8ff;
+  --accent-200: #e9d5ff;
+  --accent-300: #d8b4fe;
+  --accent-400: #c084fc;
+  --accent-500: #a855f7;
+  --accent-600: #9333ea;
+  --accent-700: #7e22ce;
+  --accent-800: #6b21a8;
+  --accent-900: #581c87;
+  
+  /* Supporting Colors */
+  --success: #10b981;
+  --success-dark: #059669;
+  --warning: #f59e0b;
+  --warning-dark: #d97706;
+  --error: #ef4444;
+  --error-dark: #dc2626;
+  --info: #3b82f6;
+  --info-dark: #2563eb;
+  
+  /* Surface Colors */
   --background: #ffffff;
-  --foreground: #171717;
-}
+  --background-subtle: #fafbfc;
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --foreground: #111827;
+  --foreground-muted: #6b7280;
+  
+  /* Brand Gradients */
+  --gradient-primary: linear-gradient(135deg, #0d9488 0%, #0f766e 50%, #115e59 100%);
+  --gradient-accent: linear-gradient(135deg, #a855f7 0%, #9333ea 50%, #7e22ce 100%);
+  --gradient-hero: linear-gradient(135deg, #0d9488 0%, #0f766e 25%, #a855f7 75%, #9333ea 100%);
+  --gradient-subtle: linear-gradient(180deg, #fafbfc 0%, #f4f5f7 100%);
+  
+  /* Legacy Support (mapped to new system) */
+  --brand-start: #0d9488;
+  --brand-end: #0f766e;
+  --accent: #a855f7;
+  --warning: #f59e0b;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.10), 0 2px 4px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.12), 0 4px 6px rgba(0,0,0,0.08);
+  --shadow-xl: 0 20px 25px rgba(0,0,0,0.15), 0 10px 10px rgba(0,0,0,0.10);
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* Motion */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration: 250ms;
+  --duration-slow: 400ms;
+
+  /* Focus */
+  --focus-ring: 0 0 0 3px rgba(124, 58, 237, 0.15);
 }
 
 * {
@@ -30,13 +95,118 @@ body {
   margin: 0;
 }
 
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+/* Global focus styles for accessibility */
+ a:focus-visible,
+ button:focus-visible,
+ input:focus-visible,
+ select:focus-visible,
+ textarea:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
+  border-color: var(--accent-500);
+ }
+
+/* Layout Classes */
+.layout-container {
+  min-height: 100vh;
+  background: var(--gradient-subtle);
+}
+
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
 a {
   color: inherit;
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+.font-inter {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--neutral-100);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--neutral-300);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brand-500);
+}
+
+/* Utility classes - removed Tailwind dependencies */
+
+/* Removed old Tailwind utility classes - now using CSS modules */
+
+/* All old utility classes removed - using CSS modules instead */
+
+/* Utilities */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.brand-gradient {
+  background: linear-gradient(135deg, var(--brand-start), var(--brand-end));
+}
+
+.glass {
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: saturate(1.2) blur(8px);
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 37%, #f3f4f6 63%);
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+  color: transparent;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: 0 0; }
+}
+
+/* Keep only essential global animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

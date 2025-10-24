@@ -1,0 +1,857 @@
+/* Digital Painting Page Styles */
+
+.paintPage {
+  min-height: 100vh;
+  background: #1a1a1a;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, #1e1e1e, #2a2a2a);
+  border-bottom: 1px solid #404040;
+  padding: 1rem 0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.headerContent {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.backButton {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.backButton:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.walletStatus {
+  font-size: 0.9rem;
+  color: #d0d0d0;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Main Content */
+.main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Export Modal */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  z-index: 1000;
+}
+
+.exportModal,
+.mintModal {
+  background: linear-gradient(135deg, #1e1e1e, #2a2a2a);
+  border-radius: 16px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-xl);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 2rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modalHeader h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.modalBody {
+  padding: 2rem;
+}
+
+.previewContainer {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.artworkPreview {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.exportInfo {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.exportInfo p {
+  margin: 0.5rem 0;
+  color: #d0d0d0;
+  font-size: 0.9rem;
+}
+
+.exportInfo strong {
+  color: #ffffff;
+}
+
+.exportActions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.downloadButton,
+.mintButton,
+.connectButton {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.downloadButton {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.downloadButton:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.mintButton {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #ffffff;
+  border: 1px solid #6366f1;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.mintButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+}
+
+.mintButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.connectButton {
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: #ffffff;
+  border: 1px solid #059669;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+.connectButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.modalFooter {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footerText {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #d0d0d0;
+  text-align: center;
+}
+
+.footerText strong {
+  color: #4f46e5;
+}
+
+/* Mint Modal Specific Styles */
+.inputGroup {
+  margin-bottom: 1.5rem;
+}
+
+.inputGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.inputField,
+.textareaField {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.inputField:focus,
+.textareaField:focus {
+  outline: none;
+  border-color: #4f46e5;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.inputField::placeholder,
+.textareaField::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.textareaField {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.mintInfo {
+  background: rgba(79, 70, 229, 0.1);
+  border: 1px solid rgba(79, 70, 229, 0.3);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.mintInfo p {
+  margin: 0.5rem 0;
+  color: #d0d0d0;
+  font-size: 0.9rem;
+}
+
+.mintInfo strong {
+  color: #ffffff;
+}
+
+.mintActions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.cancelButton,
+.confirmMintButton {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.cancelButton {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.cancelButton:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.confirmMintButton {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #ffffff;
+  border: 1px solid #6366f1;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.confirmMintButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+}
+
+.confirmMintButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .headerContent {
+    padding: 0 1rem;
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .title {
+    font-size: 1.25rem;
+  }
+  
+  .modalOverlay {
+    padding: 1rem;
+  }
+  
+  .modalBody {
+    padding: 1.5rem;
+  }
+  
+  .exportActions,
+  .mintActions {
+    flex-direction: column;
+  }
+  
+  .artworkPreview {
+    max-height: 200px;
+  }
+  
+  .inputField,
+  .textareaField {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .headerContent {
+    padding: 0 0.5rem;
+  }
+  
+  .backButton {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+  
+  .title {
+    font-size: 1.1rem;
+  }
+  
+  .modalBody {
+    padding: 1rem;
+  }
+  
+  .exportInfo {
+    padding: 1rem;
+  }
+  
+  .downloadButton,
+  .mintButton,
+  .connectButton,
+  .cancelButton,
+  .confirmMintButton {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .inputGroup label {
+    font-size: 0.85rem;
+  }
+  
+  .mintInfo {
+    padding: 1rem;
+  }
+}
+
+/* Animation for modal appearance */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.exportModal,
+.mintModal {
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+/* Hover effects for interactive elements */
+.previewContainer:hover .artworkPreview {
+  transform: scale(1.02);
+  transition: transform 0.3s ease;
+}
+
+/* Loading state for buttons */
+.mintButton:disabled .spinner {
+  margin-right: 0.5rem;
+}
+
+/* Success states */
+.exportActions button:active {
+  transform: scale(0.98);
+}
+
+/* Focus states for accessibility */
+.backButton:focus,
+.downloadButton:focus,
+.mintButton:focus,
+.connectButton:focus,
+.closeButton:focus {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+/* ============================================
+   PROGRESS TRACKING & SUCCESS MODAL
+   ============================================ */
+
+/* Progress Container */
+.progressContainer {
+  margin-top: 2rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.15), rgba(168, 85, 247, 0.1));
+  border-radius: 1rem;
+  border: 2px solid rgba(13, 148, 136, 0.3);
+}
+
+.progressHeader {
+  margin-bottom: 1.5rem;
+}
+
+.progressTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--brand-300);
+  text-align: center;
+}
+
+.progressSteps {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.progressStepItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0.75rem;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.progressStepItem.processing {
+  border-color: var(--brand-400);
+  box-shadow: 0 4px 16px rgba(13, 148, 136, 0.2);
+  background: rgba(13, 148, 136, 0.1);
+}
+
+.progressStepItem.completed {
+  border-color: var(--brand-500);
+  background: rgba(13, 148, 136, 0.15);
+}
+
+.progressStepIcon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.progressStepItem.processing .progressStepIcon {
+  background: var(--brand-500);
+  color: white;
+}
+
+.progressStepItem.completed .progressStepIcon {
+  background: var(--brand-500);
+  color: white;
+}
+
+.progressStepContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.progressStepName {
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 0.5rem;
+}
+
+.progressStepDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.detailMessage {
+  font-size: 0.875rem;
+  color: var(--brand-300);
+  font-weight: 600;
+}
+
+.detailValue {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'Monaco', 'Courier New', monospace;
+  word-break: break-all;
+}
+
+/* Success Modal */
+.successModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.successModal {
+  position: relative;
+  background: white;
+  border-radius: 2rem;
+  max-width: 42rem;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 3rem;
+  box-shadow: 0 32px 96px rgba(13, 148, 136, 0.3);
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.successHeader {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.successIcon {
+  width: 6rem;
+  height: 6rem;
+  margin: 0 auto 1.5rem;
+  background: var(--gradient-primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 16px 48px rgba(13, 148, 136, 0.3);
+  animation: successPulse 2s ease-in-out infinite;
+}
+
+@keyframes successPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 16px 48px rgba(13, 148, 136, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 20px 60px rgba(13, 148, 136, 0.4);
+  }
+}
+
+.successTitle {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--neutral-900);
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.02em;
+}
+
+.successSubtitle {
+  font-size: 1.125rem;
+  color: var(--neutral-600);
+  line-height: 1.6;
+}
+
+.successDetails {
+  background: var(--neutral-50);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.875rem 0;
+  border-bottom: 1px solid var(--neutral-200);
+}
+
+.detailRow:last-child {
+  border-bottom: none;
+}
+
+.detailLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--neutral-600);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.detailValueMono {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--neutral-900);
+  font-family: 'Monaco', 'Courier New', monospace;
+}
+
+.provenanceChain {
+  background: linear-gradient(135deg, var(--brand-50), var(--accent-50));
+  border-radius: 1rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: 2px solid var(--brand-200);
+}
+
+.chainTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--brand-800);
+  text-align: center;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.chainFlow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.chainStep {
+  padding: 0.625rem 1.25rem;
+  background: white;
+  border-radius: 2rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--brand-700);
+  border: 2px solid var(--brand-300);
+  white-space: nowrap;
+}
+
+.chainArrow {
+  color: var(--brand-500);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.successActions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.successButton {
+  flex: 1;
+  min-width: 200px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.125rem 2rem;
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  border-radius: 1rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 24px rgba(13, 148, 136, 0.3);
+  cursor: pointer;
+}
+
+.successButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(13, 148, 136, 0.4);
+}
+
+.successButtonSecondary {
+  flex: 1;
+  min-width: 200px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.125rem 2rem;
+  background: white;
+  color: var(--brand-600);
+  border: 2px solid var(--brand-500);
+  border-radius: 1rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.successButtonSecondary:hover {
+  background: var(--brand-50);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(13, 148, 136, 0.15);
+}
+
+.closeModalButton {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--neutral-100);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--neutral-600);
+}
+
+.closeModalButton:hover {
+  background: var(--neutral-200);
+  color: var(--neutral-900);
+  transform: rotate(90deg);
+}
