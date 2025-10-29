@@ -18,8 +18,8 @@ A next-generation NFT marketplace built on Hedera that combines AI-powered art g
 - [Architecture](#-architecture)
 - [Technology Stack](#-technology-stack)
 - [Deployment & Setup](#-deployment--setup)
-- [Environment Configuration](#-environment-configuration)
-- [Deployed Hedera IDs](#-deployed-hedera-ids-testnet)
+  - [Environment Configuration](#3-configure-environment-variables)
+  - [Deployed Hedera IDs](#deployed-hedera-ids-testnet)
 
 ---
 
@@ -30,7 +30,7 @@ ANFT (Authentic NFT) is a comprehensive NFT platform that revolutionizes digital
 1. **AI Art Generation** - Leverages text-to-image ai agents to generate high-quality, AI artwork
 2. **Digital Painting Studio** - A professional-grade canvas-based drawing tool with multiple brushes, colors, and layers
 
-What sets ANFT apart is its **three-layer authenticity system**: every artwork is tied to a Decentralized Identity (DID), cryptographically hashed for integrity verification, and permanently attested on-chain through Hedera Consensus Service, creating an immutable chain of provenance that proves ownership, authenticity, and creation history.
+What sets ANFT apart is its **three-layer authenticity system**: every artwork is tied to a Decentralized Identity (DID), cryptographically hashed for integrity verification, and permanently attested on-chain through Hedera Consensus Service, creating an immutable chain of provenance that proves authorship, authenticity, and creation history.
 
 ---
 
@@ -41,7 +41,7 @@ ANFT extensively leverages multiple Hedera services to create a fast, affordable
 ### 1. **Hedera Token Service (HTS)**
 
 #### Why We Use HTS
-We chose HTS for NFT creation and management because it provides **native token functionality** at the protocol level with **predictable, low-cost minting** ($0.001 per NFT mint) and **built-in royalty support**. Unlike Ethereum-based ERC-721 implementations that require complex smart contracts and high gas fees, HTS enables instant NFT creation with association, transfer, and ownership tracking—all handled by Hedera's network layer. This drastically reduces development complexity and ensures creators can mint NFTs without worrying about fluctuating costs or failed transactions.
+We chose HTS for NFT creation and management because it provides **native token functionality** at the protocol level with **predictable, low-cost minting** ($0.001 per NFT mint) and **built-in royalty support**. Unlike Ethereum-based ERC-721 implementations that require complex smart contracts and high gas fees, HTS enables instant NFT creation with association, transfer, and authorship tracking—all handled by Hedera's network layer. This drastically reduces development complexity and ensures creators can mint NFTs without worrying about fluctuating costs or failed transactions.
 
 #### Implementation Files
 - **`src/utils/bladeWalletNFTMinting.js`** - Core NFT minting workflow with Blade Wallet integration
@@ -74,7 +74,7 @@ The predictable fee structure also allows ANFT to offer **transparent pricing** 
 ### 2. **Hedera Consensus Service (HCS)**
 
 #### Why We Use HCS for Decentralized Identities (DIDs)
-We implemented DIDs on HCS because it provides **immutable, timestamped identity records** at a cost of **$0.0001 per message**. DIDs are critical for establishing creator authenticity and preventing art theft. By storing DID documents and public keys on HCS topics, we create a **permanent, verifiable identity layer** that exists independently of ANFT's servers. If our platform disappeared tomorrow, creators' identities and ownership proofs would remain intact on Hedera's ledger.
+We implemented DIDs on HCS because it provides **immutable, timestamped identity records** at a cost of **$0.0001 per message**. DIDs are critical for establishing creator authenticity and preventing art theft. By storing DID documents and public keys on HCS topics, we create a **permanent, verifiable identity layer** that exists independently of ANFT's servers. If our platform disappeared tomorrow, creators' identities and authorship proofs would remain intact on Hedera's ledger.
 
 #### Implementation Files
 - **`src/utils/hederaDID.js`** - Core DID creation, registration, and resolution logic
@@ -441,6 +441,29 @@ The application will start on **http://localhost:3000**
 5. View your NFT in **"My NFTs"**
 6. List it on the marketplace via **"Marketplace"**
 
+---
+
+## 🆔 Deployed Hedera IDs (Testnet)
+
+The following smart contracts have been deployed to Hedera Testnet and are currently live:
+
+### **ANFT Marketplace Contract**
+
+```
+Contract ID: 0.0.7155064
+Network: Hedera Testnet
+```
+
+This is the main marketplace smart contract that handles:
+- NFT listing creation and management
+- Purchase execution with HTS integration
+- Platform fee collection (2.5%)
+- Listing cancellation
+- HTS precompiled contract interactions
+
+You can verify this contract on the [Hedera Mirror Node Explorer](https://hashscan.io/testnet/contract/0.0.7155064).
+
+---
 
 **Built with ❤️ for the Hedera Africa Hackathon**
 
