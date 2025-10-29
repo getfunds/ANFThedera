@@ -24,6 +24,7 @@ const PaintPage = () => {
   const {
     didInfo,
     showDIDModal,
+    isLoadingDID,
     ensureDIDBeforeMint,
     completeDIDRegistration,
     cancelDIDRegistration
@@ -738,7 +739,7 @@ const PaintPage = () => {
         accountId={accountId}
         onRegister={completeDIDRegistration}
         onClose={cancelDIDRegistration}
-        isRegistering={false}
+        isRegistering={isLoadingDID}
       />
     </div>
   );

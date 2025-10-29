@@ -52,6 +52,7 @@ const CreatePage = () => {
     didInfo,
     hasDID,
     showDIDModal,
+    isLoadingDID,
     ensureDIDBeforeMint,
     completeDIDRegistration,
     cancelDIDRegistration
@@ -937,7 +938,7 @@ const CreatePage = () => {
         accountId={accountId}
         onRegister={completeDIDRegistration}
         onClose={cancelDIDRegistration}
-        isRegistering={false}
+        isRegistering={isLoadingDID}
       />
     </div>
   );

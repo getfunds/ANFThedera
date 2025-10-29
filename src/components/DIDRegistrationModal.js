@@ -180,22 +180,57 @@ export default function DIDRegistrationModal({
               )}
             </div>
 
-            <div className={styles.processInfo}>
-              <h4>What happens next:</h4>
-              <ol>
-                <li>Your DID keys are generated locally</li>
-                <li>A DID topic is created on Hedera Consensus Service</li>
-                <li>Your DID Document is uploaded to Hedera File Service</li>
-                <li>You sign the transaction with your Blade Wallet</li>
-              </ol>
-            </div>
+            {!isRegistering ? (
+              <>
+                <div className={styles.processInfo}>
+                  <h4>What happens next:</h4>
+                  <ol>
+                    <li>Your DID keys are generated locally</li>
+                    <li>A DID topic is created on Hedera Consensus Service</li>
+                    <li>Your DID Document is uploaded to Hedera File Service</li>
+                    <li>You sign the transaction with your Blade Wallet</li>
+                  </ol>
+                </div>
 
-            <div className={styles.warningBox}>
-              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              <p>This action requires a small HBAR transaction fee (typically less than $0.01)</p>
-            </div>
+                <div className={styles.warningBox}>
+                  <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <p>This action requires a small HBAR transaction fee (typically less than $0.01)</p>
+                </div>
+              </>
+            ) : (
+              <div className={styles.progressBox}>
+                <div className={styles.progressBoxTitle}>
+                  <div className={styles.spinner}></div>
+                  <span>Creating Your Decentralized Identity...</span>
+                </div>
+                <div className={styles.progressSteps}>
+                  <div className={styles.progressItem}>
+                    <div className={styles.progressDot}></div>
+                    <span>Generating DID keys locally</span>
+                  </div>
+                  <div className={styles.progressItem}>
+                    <div className={styles.progressDot}></div>
+                    <span>Creating DID topic on Hedera Consensus Service</span>
+                  </div>
+                  <div className={styles.progressItem}>
+                    <div className={styles.progressDot}></div>
+                    <span>Uploading DID Document to Hedera File Service</span>
+                  </div>
+                  <div className={styles.progressItem}>
+                    <div className={styles.progressDot}></div>
+                    <span>Waiting for your signature via Blade Wallet</span>
+                  </div>
+                </div>
+                <div className={styles.progressNote}>
+                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p>Please check your Blade Wallet extension for signature requests. Do not close this window.</p>
+                </div>
+              </div>
+            )}
 
             <div className={styles.buttonGroup}>
               <button onClick={() => setStep(2)} className={styles.secondaryButton} disabled={isRegistering}>
