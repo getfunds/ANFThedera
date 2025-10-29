@@ -516,6 +516,36 @@ export async function mintNFTWorkflowWithBlade(bladeSigner, accountId, metadata,
     
     console.log('🎉 Blade Wallet NFT minting completed successfully!');
     
+    // Step 4: Record NFT creation in DID topic (optional, non-blocking)
+    try {
+      console.log('📝 Step 4: Recording NFT in DID topic...');
+      updateProgress('Recording NFT creation in DID...');
+      
+      const { recordNFTCreation } = await import('./hederaDID');
+      
+      // Get DID info from localStorage
+      const didInfo = JSON.parse(localStorage.getItem(`did_${accountId}`) || '{}');
+      
+      if (didInfo && didInfo.topicId) {
+        await recordNFTCreation(didInfo, {
+          tokenId: tokenId,
+          serialNumber: mintResult.serialNumber,
+          name: metadata.name,
+          ipfsHash: mintResult.metadataUrl,
+          imageHash: metadata.attributes?.find(attr => attr.trait_type === 'Image Hash')?.value,
+          creator: accountId,
+          creationType: metadata.attributes?.find(attr => attr.trait_type === 'Creation Type')?.value || 'unknown'
+        });
+        updateProgress('NFT recorded in DID topic');
+        console.log('✅ NFT creation recorded in DID topic');
+      } else {
+        console.log('ℹ️ No DID topic found, skipping DID recording');
+      }
+    } catch (didError) {
+      console.warn('⚠️ Failed to record NFT in DID topic (non-critical):', didError);
+      // Don't fail the minting process if DID recording fails
+    }
+    
     return {
       collection: collectionResult,
       mint: mintResult,

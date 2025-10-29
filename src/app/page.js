@@ -35,8 +35,7 @@ export default function Home() {
           </h1>
           
           <p className={styles.heroSubtitle}>
-            The complete NFT platform powered by decentralized identity, content hashing, 
-            and on-chain attestations. Build trust in every creation.
+          The all-in-one NFT platform powered by decentralized identity, cryptographic content hashing, and on-chain attestations, bringing verifiable authenticity to every NFT artwork creation.
           </p>
           
           <div className={styles.heroActions}>
@@ -82,8 +81,7 @@ export default function Home() {
             Every NFT is <span className={styles.highlight}>Verifiably Authentic</span>
           </h2>
           <p className={styles.sectionDescription}>
-            ANFT uses cutting-edge blockchain technology to guarantee authenticity, 
-            ownership, and provenance for every digital creation.
+          ANFT leverages cutting-edge blockchain technology to guarantee authenticity, authorship, and provenance for every digital artwork.
           </p>
         </div>
 
@@ -111,7 +109,7 @@ export default function Home() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                   <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
-                <span>Cryptographic ownership proof</span>
+                <span>Cryptographic authorship proof</span>
               </div>
               <div className={styles.feature}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">

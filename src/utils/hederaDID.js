@@ -564,6 +564,153 @@ export async function verifyDID(did) {
 }
 
 /**
+ * Record NFT creation in DID topic
+ * @param {Object} didInfo - DID information with topicId
+ * @param {Object} nftData - NFT creation data
+ * @returns {Promise<string>} Transaction ID of the message
+ */
+export async function recordNFTCreation(didInfo, nftData) {
+  try {
+    console.log('📝 Recording NFT creation in DID topic...', {
+      did: didInfo.did,
+      topicId: didInfo.topicId,
+      nftTokenId: nftData.tokenId
+    });
+
+    // Verify wallet is connected through wallet manager
+    const walletManager = (await import('./wallets/wallet-manager')).default;
+    
+    if (!walletManager.isConnected()) {
+      throw new Error('Wallet not connected. Please connect your wallet first.');
+    }
+    
+    const walletType = walletManager.getCurrentWalletType();
+    
+    if (walletType !== 'blade') {
+      throw new Error('Please connect with Blade Wallet to record NFT creation.');
+    }
+    
+    // Get Blade wallet
+    const bladeWallet = (await import('./wallets/blade')).default;
+    
+    if (!bladeWallet.bladeConnector) {
+      throw new Error('Blade connector not initialized. Please reconnect your Blade Wallet.');
+    }
+    
+    // Get signers from Blade connector
+    const signers = await bladeWallet.bladeConnector.getSigners();
+    
+    if (!signers || signers.length === 0) {
+      throw new Error('No signers available from Blade Wallet.');
+    }
+    
+    const bladeSigner = signers[0];
+    
+    // Create NFT creation message
+    const nftMessage = {
+      operation: 'nft_created',
+      did: didInfo.did,
+      nftTokenId: nftData.tokenId,
+      serialNumber: nftData.serialNumber,
+      timestamp: new Date().toISOString(),
+      name: nftData.name,
+      metadata: {
+        ipfsHash: nftData.ipfsHash || nftData.metadataCID,
+        imageHash: nftData.imageHash,
+        creator: nftData.creator || bladeSigner.getAccountId().toString(),
+        creationType: nftData.creationType || 'unknown' // 'ai' or 'digital_painting'
+      }
+    };
+    
+    console.log('📤 Publishing NFT creation message:', nftMessage);
+    
+    // Publish message to DID topic
+    await publishDIDMessage(bladeSigner, didInfo.topicId, nftMessage);
+    
+    console.log('✅ NFT creation recorded in DID topic');
+    
+    return nftMessage;
+    
+  } catch (error) {
+    console.error('❌ Error recording NFT creation:', error);
+    // Don't throw - this is supplementary data, shouldn't block NFT creation
+    console.warn('⚠️ NFT was created successfully but recording in DID topic failed');
+    return null;
+  }
+}
+
+/**
+ * Get all NFTs created by a DID
+ * @param {string} did - DID identifier or topicId
+ * @returns {Promise<Array>} Array of NFT creation records
+ */
+export async function getDIDCreatedNFTs(did) {
+  try {
+    console.log('🔍 Fetching NFTs created by DID:', did);
+    
+    // Extract topic ID from DID if needed
+    let topicId;
+    if (did.startsWith('did:hedera:')) {
+      const parts = did.split(':');
+      topicId = parts[3];
+    } else {
+      topicId = did;
+    }
+    
+    // Query Mirror Node for topic messages
+    const network = process.env.NEXT_PUBLIC_HEDERA_NETWORK || 'testnet';
+    const mirrorUrl = network === 'mainnet' 
+      ? 'https://mainnet-public.mirrornode.hedera.com'
+      : 'https://testnet.mirrornode.hedera.com';
+    
+    const response = await fetch(
+      `${mirrorUrl}/api/v1/topics/${topicId}/messages?limit=100&order=asc`
+    );
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch topic messages: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (!data.messages || data.messages.length === 0) {
+      console.log('ℹ️ No messages found in DID topic');
+      return [];
+    }
+    
+    // Filter and parse NFT creation messages
+    const nftRecords = [];
+    
+    for (const message of data.messages) {
+      try {
+        // Decode message content
+        const messageContent = Buffer.from(message.message, 'base64').toString('utf-8');
+        const messageData = JSON.parse(messageContent);
+        
+        // Check if this is an NFT creation message
+        if (messageData.operation === 'nft_created') {
+          nftRecords.push({
+            ...messageData,
+            consensusTimestamp: message.consensus_timestamp,
+            sequenceNumber: message.sequence_number
+          });
+        }
+      } catch (parseError) {
+        console.warn('⚠️ Could not parse message:', parseError);
+        continue;
+      }
+    }
+    
+    console.log(`✅ Found ${nftRecords.length} NFT creation records`);
+    return nftRecords;
+    
+  } catch (error) {
+    console.error('❌ Error fetching DID created NFTs:', error);
+    return [];
+  }
+}
+
+/**
  * Format DID for display
  * @param {string} did - Full DID
  * @returns {string} Abbreviated DID
@@ -586,5 +733,7 @@ export default {
   getOrCreateDID,
   resolveDID,
   verifyDID,
-  formatDID
+  formatDID,
+  recordNFTCreation,
+  getDIDCreatedNFTs
 };
