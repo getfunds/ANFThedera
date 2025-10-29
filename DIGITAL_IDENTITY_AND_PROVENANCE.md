@@ -20,7 +20,7 @@ When you create your first NFT on ANFT, the platform helps you establish your DI
 
 #### Why do we use it?
 
-- **True Ownership**: Your identity belongs to you, not to our platform or any company
+- **True Authorship**: Your identity belongs to you, not to our platform or any company
 - **Portability**: Your DID can be used across different platforms and services
 - **Verification**: Anyone can verify that an artwork was created by the real you
 - **Reputation Building**: All your creations are linked to one verifiable identity
@@ -88,7 +88,7 @@ Think of it as a notarized certificate that can never be changed or destroyed.
 - **Transparency**: Anyone can independently verify the attestation
 - **Timestamping**: Proves exactly when the creation occurred
 - **Decentralization**: The record exists on Hedera's network, not our servers
-- **Legal Weight**: Provides strong evidence of creation and ownership
+- **Legal Weight**: Provides strong evidence of creation and authorship
 
 #### How does it work?
 
@@ -269,7 +269,7 @@ We chose Hedera because it offers:
 ✨ **Authenticity**: Unquestionable proof you created your work
 ✨ **Protection**: Strong defense against art theft and plagiarism  
 ✨ **Reputation**: Build a verifiable creative portfolio
-✨ **Ownership**: True control over your digital identity
+✨ **Authorship**: True control over your digital identity
 ✨ **Legacy**: Permanent record that outlives any platform
 ✨ **Trust**: Collectors have confidence in your authenticity
 
@@ -279,7 +279,7 @@ We chose Hedera because it offers:
 🎯 **Confidence**: Know exactly what you're buying
 🎯 **Transparency**: Complete creation history at your fingertips
 🎯 **Investment Security**: Protect against fakes and frauds
-🎯 **Provenance**: Clear chain of ownership from creation onward
+🎯 **Provenance**: Clear chain of authorship from creation onward
 🎯 **Future-Proof**: Records remain valid forever
 
 ### For the Ecosystem:
@@ -360,7 +360,4 @@ This isn't just about minting NFTs—it's about **building a permanent, verifiab
 Welcome to the future of verified digital art. Welcome to ANFT.
 
 ---
-
-*For technical documentation on implementing this system, see our developer guides.*
-*For support or questions, visit our community forum or contact support.*
 

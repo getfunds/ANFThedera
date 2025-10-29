@@ -1,6 +1,14 @@
+## 📄ANFT Pitch Deck
+[View ANFT Pitch Deck](https://drive.google.com/file/d/1xEOJj5Fwd8qS1IaND9keE-mRRWnvu6FK/)
+
+## 🎓 Hashgraph Developer Course Certificate
+[View Certificate](https://drive.google.com/file/d/1Va4OSea_WFo2fzXao7-AGVRajR8ifBv8/)
+
+---
+
 # ANFT - Authentic NFT Platform 🎨
 
-**Hedera Track Submission**
+**Gaming and NFTs**
 
 A next-generation NFT marketplace built on Hedera that combines AI-powered art generation, digital painting tools, and comprehensive on-chain provenance tracking to create truly authentic and verifiable digital art.
 
@@ -19,7 +27,7 @@ A next-generation NFT marketplace built on Hedera that combines AI-powered art g
 - [Technology Stack](#-technology-stack)
 - [Deployment & Setup](#-deployment--setup)
   - [Environment Configuration](#3-configure-environment-variables)
-  - [Deployed Hedera IDs](#deployed-hedera-ids-testnet)
+  - [Deployed Hedera IDs](#-deployed-hedera-ids-testnet)
 
 ---
 
