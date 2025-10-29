@@ -30,8 +30,8 @@ const Navbar = () => {
               <Image
                 src="/anft.png"
                 alt="ANFT Logo"
-                width={40}
-                height={40}
+                width={50}
+                height={50}
                 className={styles.logoImage}
                 priority
               />
