@@ -21,130 +21,56 @@ import {
  */
 export async function checkExistingDID(accountId) {
   try {
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('🔍 CLIENT: DID Check Started');
-    console.log('   Account ID:', accountId);
-    console.log('   Timestamp:', new Date().toISOString());
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🔍 Checking for existing DID:', accountId);
     
-    // Try to get public key from wallet for more reliable lookup
-    let publicKey = null;
-    try {
-      console.log('🔑 Attempting to retrieve public key from wallet...');
-      const walletManager = (await import('./wallets/wallet-manager')).default;
-      
-      if (walletManager.isConnected()) {
-        const walletType = walletManager.getCurrentWalletType();
-        console.log('   Connected Wallet:', walletType);
-        
-        if (walletType === 'blade') {
-          const bladeWallet = (await import('./wallets/blade')).default;
-          if (bladeWallet.bladeConnector) {
-            const signers = await bladeWallet.bladeConnector.getSigners();
-            if (signers && signers.length > 0) {
-              const signer = signers[0];
-              // Try to get public key from signer
-              if (signer.getAccountKey) {
-                const key = await signer.getAccountKey();
-                publicKey = key.toString();
-                console.log('   ✅ Public Key Retrieved:', publicKey.substring(0, 20) + '...');
-              } else if (signer.publicKey) {
-                publicKey = signer.publicKey.toString();
-                console.log('   ✅ Public Key Retrieved:', publicKey.substring(0, 20) + '...');
-              }
-            }
-          }
-        }
-      }
-    } catch (pkError) {
-      console.warn('   ⚠️ Could not retrieve public key:', pkError.message);
-    }
-    console.log('');
-    
-    // Query the Hedera network (source of truth)
-    console.log('📡 Querying Hedera Mirror Node API...');
-    
-    // Build query URL with public key if available
-    let queryUrl = `/api/did/check?accountId=${accountId}`;
-    if (publicKey) {
-      queryUrl += `&publicKey=${encodeURIComponent(publicKey)}`;
-      console.log('   Using public key for enhanced lookup');
-    }
-    console.log('   API Endpoint:', queryUrl);
-    
-    const response = await fetch(queryUrl);
-    console.log('   Response Status:', response.status, response.statusText);
+    // Query the Hedera network via API
+    const response = await fetch(`/api/did/check?accountId=${accountId}`);
     
     if (!response.ok) {
-      console.error('   ❌ API request failed');
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      
-      // Try localStorage as fallback
+      // Try localStorage as fallback if network unavailable
       const stored = localStorage.getItem(`did_${accountId}`);
       if (stored) {
         try {
-          const cachedDID = JSON.parse(stored);
-          console.warn('⚠️ Using cached DID (network unavailable)');
-          return cachedDID;
+          return JSON.parse(stored);
         } catch (e) {
           localStorage.removeItem(`did_${accountId}`);
         }
       }
-      
       return null;
     }
     
     const data = await response.json();
-    console.log('   Response Data:');
-    console.log('   ', JSON.stringify(data, null, 2).split('\n').join('\n    '));
-    console.log('');
     
     // Network response is source of truth
     if (data.exists && data.did) {
-      console.log('✅ DID EXISTS!');
-      console.log('   DID:', data.did.did);
-      console.log('   Topic ID:', data.did.topicId);
-      console.log('   Controller:', data.did.controller);
-      console.log('   Network:', data.did.network);
+      console.log('✅ DID found:', data.did.did);
       
-      // Cache for performance (not reliability)
+      // Cache for performance
       localStorage.setItem(`did_${accountId}`, JSON.stringify(data.did));
-      console.log('   💾 Cached to localStorage');
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
       return data.did;
     }
     
-    console.log('❌ NO DID FOUND');
-    console.log('   Account has no registered DID');
-    console.log('   User will need to create a DID');
+    console.log('ℹ️ No DID found for this account');
     
     // Clear any stale cache
     localStorage.removeItem(`did_${accountId}`);
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     
     return null;
     
   } catch (error) {
-    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.error('❌ CLIENT ERROR: DID Check Failed');
-    console.error('   Error:', error.message);
-    console.error('   Stack:', error.stack);
+    console.error('❌ Error checking DID:', error);
     
     // Try localStorage as last resort
     try {
       const stored = localStorage.getItem(`did_${accountId}`);
       if (stored) {
-        const didInfo = JSON.parse(stored);
-        console.warn('   ⚠️ Using cached DID (error fallback)');
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        return didInfo;
+        return JSON.parse(stored);
       }
     } catch (fallbackError) {
-      console.error('   ❌ Cache fallback failed');
+      // Ignore
     }
     
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     return null;
   }
 }
@@ -405,7 +331,6 @@ async function createTopicWithBlade(bladeSigner, accountId) {
     
     // Create topic transaction
     const topicTx = new TopicCreateTransaction()
-      .setTopicMemo(`DID for ${accountId}`)
       .setMaxTransactionFee(new Hbar(2));
     
     // Populate transaction with Blade signer
@@ -525,14 +450,18 @@ async function createFileWithBlade(bladeSigner, didDocument) {
  */
 async function publishDIDMessage(bladeSigner, topicId, message) {
   try {
-    console.log('📤 Publishing message to HCS topic...');
+    console.log('📤 Publishing DID message to HCS topic...');
     
     const messageJson = JSON.stringify(message);
     
-    // Create message transaction
+    // Standard memo for all ANFT DIDs
+    const ANFT_DID_MEMO = 'ANFT DID';
+    
+    // Create message transaction with standardized memo
     const messageTx = new TopicMessageSubmitTransaction()
       .setTopicId(TopicId.fromString(topicId))
       .setMessage(messageJson)
+      .setTransactionMemo(ANFT_DID_MEMO)
       .setMaxTransactionFee(new Hbar(2));
     
     // Populate transaction with Blade signer
@@ -541,7 +470,7 @@ async function publishDIDMessage(bladeSigner, topicId, message) {
     // Execute transaction
     await bladeSigner.call(messageTx);
     
-    console.log('✅ Message published');
+    console.log('✅ DID message published');
     
   } catch (error) {
     console.error('❌ Message publishing failed:', error);
