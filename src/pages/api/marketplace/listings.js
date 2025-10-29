@@ -54,6 +54,7 @@ export default async function handler(req, res) {
       
       res.status(200).json({
         success: true,
+        marketplaceContractId: process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT_ID || null,
         listings: paginatedListings,
         total: filteredListings.length,
         offset: parseInt(offset),
@@ -108,6 +109,7 @@ export default async function handler(req, res) {
       
       res.status(201).json({
         success: true,
+        marketplaceContractId: process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT_ID || null,
         listingId: mockListingId,
         message: 'Listing created successfully',
         transactionId: `0.0.${Math.floor(Math.random() * 100000)}@${Date.now()}.${Math.floor(Math.random() * 1000000)}`
@@ -125,6 +127,7 @@ export default async function handler(req, res) {
     console.error('❌ API Error in /marketplace/listings:', error);
     res.status(500).json({
       success: false,
+      marketplaceContractId: process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT_ID || null,
       error: 'Internal server error',
       details: error.message
     });
