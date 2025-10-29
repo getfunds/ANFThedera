@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useWallet } from '../context/WalletContext';
-import WalletModal from './WalletModal';
 import styles from './Navbar.module.css';
 
 const Navbar = () => {
@@ -211,7 +210,6 @@ const Navbar = () => {
           </div>
         )}
       </div>
-      <WalletModal />
     </nav>
   );
 };

@@ -443,7 +443,38 @@ const MarketplacePage = () => {
     return `${minutes}m`;
   };
 
+  /**
+   * Convert EVM address to Hedera account ID format
+   * EVM: 0x00000000000000000000000000000000004448ea
+   * Hedera: 0.0.4474090
+   */
+  const evmAddressToHederaId = (evmAddress) => {
+    try {
+      // Remove 0x prefix if present
+      const hex = evmAddress.startsWith('0x') ? evmAddress.slice(2) : evmAddress;
+      
+      // Convert last 8 hex characters to decimal
+      const accountNum = parseInt(hex.slice(-8), 16);
+      
+      return `0.0.${accountNum}`;
+    } catch (error) {
+      console.error('Error converting EVM address:', error);
+      return evmAddress; // Return original if conversion fails
+    }
+  };
+
   const formatAccountId = (accountId) => {
+    // If it looks like an EVM address, convert it first
+    if (accountId.startsWith('0x') || accountId.length > 20) {
+      accountId = evmAddressToHederaId(accountId);
+    }
+    
+    // Format the Hedera account ID
+    if (accountId.includes('.')) {
+      // Already in Hedera format (0.0.xxxxx)
+      return accountId;
+    }
+    
     return `${accountId.slice(0, 8)}...${accountId.slice(-6)}`;
   };
 
@@ -650,70 +681,51 @@ const MarketplacePage = () => {
                 </div>
 
                 {/* NFT Attributes */}
-                {listing.metadata.attributes && listing.metadata.attributes.length > 0 && (
-                  <div className={styles.attributesSection}>
-                    <p className={styles.attributesLabel}>Attributes</p>
-                    <div className={styles.attributesContainer}>
-                      {listing.metadata.attributes.slice(0, 3).map((attr, index) => (
-                        <span key={`${listing.id}-attr-${index}`} className={styles.attributeBadge}>
-                          {attr.trait_type}: {attr.value}
-                        </span>
-                      ))}
-                      {listing.metadata.attributes.length > 3 && (
-                        <span className={styles.attributeBadgeMore}>
-                          +{listing.metadata.attributes.length - 3} more
-                        </span>
-                      )}
+                {listing.metadata.attributes && listing.metadata.attributes.length > 0 && (() => {
+                  // Filter out AI Model and other technical attributes
+                  const displayAttributes = listing.metadata.attributes.filter(attr => 
+                    attr.trait_type !== 'AI Model' && 
+                    attr.trait_type !== 'ai_model'
+                  );
+                  
+                  if (displayAttributes.length === 0) return null;
+                  
+                  return (
+                    <div className={styles.attributesSection}>
+                      <p className={styles.attributesLabel}>Attributes</p>
+                      <div className={styles.attributesContainer}>
+                        {displayAttributes.slice(0, 3).map((attr, index) => (
+                          <span key={`${listing.id}-attr-${index}`} className={styles.attributeBadge}>
+                            {attr.trait_type}: {attr.value}
+                          </span>
+                        ))}
+                        {displayAttributes.length > 3 && (
+                          <span className={styles.attributeBadgeMore}>
+                            +{displayAttributes.length - 3} more
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* Price and Actions */}
                 <div className={styles.priceSection}>
                   <div className={styles.priceInfo}>
-                    <span className={styles.priceLabel}>
-                      {listing.isAuction ? 'Current Bid:' : 'Price:'}
-                    </span>
-                    <span className={styles.price}>
-                      {listing.isAuction && listing.highestBid > 0 
-                        ? `${listing.highestBidInHBAR} HBAR` 
-                        : `${listing.priceInHBAR} HBAR`
-                      }
-                    </span>
+                    <span className={styles.priceLabel}>Price:</span>
+                    <span className={styles.price}>{listing.priceInHBAR} HBAR</span>
                   </div>
 
                   {isConnected && listing.seller !== accountId && (
                     <div className={styles.nftActions}>
-                      {listing.isAuction ? (
-                        <button
-                          onClick={() => openBidModal(listing)}
-                          className={styles.bidButton}
-                        >
-                          <svg className={styles.buttonIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                          </svg>
-                          Place Bid
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => openBuyModal(listing)}
-                          className={styles.buyButton}
-                        >
-                          <svg className={styles.buttonIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m0 0L15 13M7 13h8m-8 0V9a2 2 0 012-2h6a2 2 0 012 2v4" />
-                          </svg>
-                          Buy Now
-                        </button>
-                      )}
-                      
                       <button
-                        onClick={() => openOfferModal(listing)}
-                        className={styles.offerButton}
+                        onClick={() => openBuyModal(listing)}
+                        className={styles.buyButton}
                       >
                         <svg className={styles.buttonIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m0 0L15 13M7 13h8m-8 0V9a2 2 0 012-2h6a2 2 0 012 2v4" />
                         </svg>
-                        Make Offer
+                        Buy Now
                       </button>
                     </div>
                   )}

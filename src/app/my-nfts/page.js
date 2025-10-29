@@ -20,6 +20,8 @@ const MyNFTsPage = () => {
   const [decryptedPrompt, setDecryptedPrompt] = useState('');
   const [filter, setFilter] = useState('all'); // all, created, owned
   const [error, setError] = useState(null);
+  const [nftListingStatus, setNftListingStatus] = useState({}); // Track which NFTs are listed
+  const [cancellingListing, setCancellingListing] = useState(null);
 
   useEffect(() => {
     if (!isConnected || !accountId) return;
@@ -47,6 +49,9 @@ const MyNFTsPage = () => {
         
         if (realNfts.length === 0) {
           console.log('ℹ️ No real NFTs found for this account');
+        } else {
+          // Check listing status for each NFT
+          checkAllListingStatuses(realNfts);
         }
         
       } catch (error) {
@@ -60,6 +65,82 @@ const MyNFTsPage = () => {
 
     loadUserNfts();
   }, [isConnected, accountId]);
+
+  // Check listing status for all NFTs
+  const checkAllListingStatuses = async (nfts) => {
+    const statusMap = {};
+    
+    for (const nft of nfts) {
+      try {
+        const response = await fetch(
+          `/api/marketplace/check-listing?tokenAddress=${nft.tokenId}&tokenId=${nft.serialNumber}`
+        );
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.isListed) {
+            statusMap[`${nft.tokenId}-${nft.serialNumber}`] = data.listing;
+          }
+        }
+      } catch (error) {
+        console.warn(`Failed to check listing for ${nft.tokenId}:`, error);
+      }
+    }
+    
+    setNftListingStatus(statusMap);
+  };
+
+  // Cancel listing function
+  const handleCancelListing = async (nft) => {
+    const listingKey = `${nft.tokenId}-${nft.serialNumber}`;
+    const listing = nftListingStatus[listingKey];
+    
+    if (!listing) {
+      alert('No active listing found');
+      return;
+    }
+
+    const confirmCancel = window.confirm(
+      `Are you sure you want to cancel the listing for "${nft.name}"?\n\nListed Price: ${listing.price} HBAR`
+    );
+
+    if (!confirmCancel) return;
+
+    setCancellingListing(nft.id);
+
+    try {
+      console.log('🚫 Cancelling listing:', listing.listingId);
+
+      // Get Blade Wallet signer
+      const { getBladeWalletSigner } = await import('../../utils/bladeWalletNFTMinting');
+      const { bladeSigner, accountId: walletAccountId } = await getBladeWalletSigner();
+
+      // Import marketplace utilities dynamically
+      const { cancelMarketplaceListing } = await import('../../utils/marketplace');
+      
+      console.log('🔑 Using account:', walletAccountId);
+
+      const result = await cancelMarketplaceListing(
+        listing.listingId,
+        bladeSigner,
+        walletAccountId
+      );
+      
+      console.log('✅ Listing cancelled:', result);
+      alert(`Successfully cancelled listing for "${nft.name}"!`);
+      
+      // Remove from listing status
+      const newStatusMap = { ...nftListingStatus };
+      delete newStatusMap[listingKey];
+      setNftListingStatus(newStatusMap);
+      
+    } catch (error) {
+      console.error('❌ Failed to cancel listing:', error);
+      alert(`Failed to cancel listing: ${error.message}`);
+    } finally {
+      setCancellingListing(null);
+    }
+  };
 
   const filteredNfts = myNfts.filter(nft => {
     if (filter === 'created') return nft.creator === accountId;
@@ -95,13 +176,57 @@ const MyNFTsPage = () => {
     setShowListModal(true);
   };
 
-  const handleListingSuccess = (result) => {
+  const handleListingSuccess = async (result) => {
     console.log('✅ NFT listed successfully:', result);
     alert(`🎉 Successfully listed ${selectedNft.name} for sale!`);
     
-    // Refresh NFTs to show updated status
-    // In production, you might update the local state instead
-    window.location.reload();
+    // Refresh listing status for this NFT with retry logic
+    if (selectedNft) {
+      let listingFound = false;
+      let attempts = 0;
+      const maxAttempts = 5;
+      
+      while (!listingFound && attempts < maxAttempts) {
+        attempts++;
+        
+        // Wait a bit before checking (increasing delay)
+        const waitTime = Math.min(2000 + (attempts * 1000), 6000);
+        console.log(`🔄 Checking listing status (attempt ${attempts}/${maxAttempts})...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+        
+        try {
+          const response = await fetch(
+            `/api/marketplace/check-listing?tokenAddress=${selectedNft.tokenId}&tokenId=${selectedNft.serialNumber}`
+          );
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data.isListed) {
+              const listingKey = `${selectedNft.tokenId}-${selectedNft.serialNumber}`;
+              setNftListingStatus(prev => ({
+                ...prev,
+                [listingKey]: data.listing
+              }));
+              console.log('✅ Listing status updated successfully!');
+              listingFound = true;
+              break;
+            } else {
+              console.log(`⚠️ Attempt ${attempts}: Listing not yet visible on-chain, retrying...`);
+            }
+          }
+        } catch (error) {
+          console.warn(`Attempt ${attempts} failed to check listing:`, error);
+        }
+      }
+      
+      if (!listingFound) {
+        console.warn('⚠️ Could not confirm listing status after multiple attempts. Refreshing all...');
+        // Fallback: refresh all listings
+        checkAllListingStatuses(myNfts);
+      }
+    }
+    
+    setShowListModal(false);
   };
 
   const formatAccountId = (id) => {
@@ -320,15 +445,54 @@ const MyNFTsPage = () => {
                 )}
 
                 <div className={styles.nftActions}>
-                  <button
-                    onClick={() => handleListForSale(nft)}
-                    className={styles.actionButtonPrimary}
-                  >
-                    <svg className={styles.buttonIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                    </svg>
-                    List for Sale
-                  </button>
+                  {(() => {
+                    const listingKey = `${nft.tokenId}-${nft.serialNumber}`;
+                    const isListed = !!nftListingStatus[listingKey];
+                    const isCancelling = cancellingListing === nft.id;
+
+                    if (isListed) {
+                      const listing = nftListingStatus[listingKey];
+                      return (
+                        <>
+                          <button
+                            onClick={() => handleCancelListing(nft)}
+                            disabled={isCancelling}
+                            className={styles.actionButtonDanger}
+                          >
+                            {isCancelling ? (
+                              <>
+                                <div className={styles.buttonSpinner}></div>
+                                Cancelling...
+                              </>
+                            ) : (
+                              <>
+                                <svg className={styles.buttonIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Cancel Listing
+                              </>
+                            )}
+                          </button>
+                          <div className={styles.listingInfo}>
+                            <span className={styles.listingLabel}>Listed for:</span>
+                            <span className={styles.listingPrice}>{listing.price} HBAR</span>
+                          </div>
+                        </>
+                      );
+                    }
+
+                    return (
+                      <button
+                        onClick={() => handleListForSale(nft)}
+                        className={styles.actionButtonPrimary}
+                      >
+                        <svg className={styles.buttonIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                        </svg>
+                        List for Sale
+                      </button>
+                    );
+                  })()}
                   
                   <button
                     onClick={() => openHashScan(nft)}

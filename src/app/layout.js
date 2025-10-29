@@ -1,6 +1,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "../components/Navbar";
+import WalletModal from "../components/WalletModal";
 import { WalletProvider } from "../context/WalletContext";
 
 const inter = Inter({
@@ -25,6 +26,7 @@ export default function RootLayout({ children }) {
               {children}
             </main>
           </div>
+          <WalletModal />
         </WalletProvider>
       </body>
     </html>

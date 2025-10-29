@@ -17,11 +17,12 @@ const ListNFTModal = ({ nft, isOpen, onClose, onSuccess }) => {
   const [error, setError] = useState(null);
   
   // Approval state - now handled during listing submission
-  const [approvalStep, setApprovalStep] = useState('form'); // form, checking, approving, approved, listing
+  const [approvalStep, setApprovalStep] = useState('form'); // form, checking, approving, confirming, approved, listing
   const [isCheckingApproval, setIsCheckingApproval] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [approvalStatus, setApprovalStatus] = useState(null);
   const [approvalError, setApprovalError] = useState(null);
+  const [confirmationAttempt, setConfirmationAttempt] = useState(0);
 
   // No longer check approval on modal open - let user enter details first
 
@@ -123,16 +124,40 @@ const ListNFTModal = ({ nft, isOpen, onClose, onSuccess }) => {
         setApprovalStep('approving');
         console.log('🔓 NFT not approved - triggering automatic approval...');
         
-        await executeApprovalForAllInternal(bladeSigner, accountId);
+        const approvalResult = await executeApprovalForAllInternal(bladeSigner, accountId);
         
-        // Wait and re-check approval
-        console.log('⏳ Waiting for approval confirmation...');
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        // Wait for approval confirmation with retry logic
+        setApprovalStep('confirming');
+        console.log('⏳ Waiting for approval confirmation with retry logic...');
         
-        const recheck = await checkApprovalStatusInternal();
-        if (!recheck.isApproved) {
-          throw new Error('NFT approval failed - please try the approval manually first');
+        let approvalConfirmed = false;
+        let attempts = 0;
+        const maxAttempts = 8;
+        
+        while (!approvalConfirmed && attempts < maxAttempts) {
+          attempts++;
+          setConfirmationAttempt(attempts);
+          const waitTime = Math.min(2000 + (attempts * 1000), 8000); // Increase wait time: 3s, 4s, 5s...
+          console.log(`🔄 Attempt ${attempts}/${maxAttempts}: Waiting ${waitTime/1000}s before checking approval...`);
+          
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+          
+          const recheck = await checkApprovalStatusInternal();
+          
+          if (recheck.isApproved) {
+            approvalConfirmed = true;
+            console.log('✅ Approval confirmed!');
+            break;
+          } else {
+            console.log(`⚠️ Attempt ${attempts}: Approval not yet confirmed, retrying...`);
+          }
         }
+        
+        if (!approvalConfirmed) {
+          throw new Error('NFT approval transaction was sent but confirmation timed out. Please wait a moment and try listing again.');
+        }
+        
+        setApprovalStep('approved');
       }
 
       // Step 3: Create marketplace listing
@@ -182,6 +207,7 @@ const ListNFTModal = ({ nft, isOpen, onClose, onSuccess }) => {
     setApprovalStep('form');
     setApprovalStatus(null);
     setApprovalError(null);
+    setConfirmationAttempt(0);
   };
 
   const handleClose = () => {
@@ -240,17 +266,19 @@ const ListNFTModal = ({ nft, isOpen, onClose, onSuccess }) => {
 
         <div className={styles.modalBody}>
           {/* Progress Step - Only show during listing process */}
-          {(approvalStep === 'checking' || approvalStep === 'approving' || approvalStep === 'listing') && (
+          {(approvalStep === 'checking' || approvalStep === 'approving' || approvalStep === 'confirming' || approvalStep === 'listing') && (
             <div className={styles.approvalSection}>
               <div className={styles.approvalHeader}>
                 <h3 className={styles.approvalTitle}>
                   {approvalStep === 'checking' && '🔍 Checking NFT Approval...'}
                   {approvalStep === 'approving' && '🔓 Approving NFT for Marketplace...'}
+                  {approvalStep === 'confirming' && `⏳ Confirming Approval (Attempt ${confirmationAttempt}/8)...`}
                   {approvalStep === 'listing' && '📝 Creating Marketplace Listing...'}
                 </h3>
                 <p className={styles.approvalDescription}>
                   {approvalStep === 'checking' && 'Verifying if your NFT is approved for marketplace trading...'}
                   {approvalStep === 'approving' && 'Please sign the approval transaction in your wallet to allow marketplace trading...'}
+                  {approvalStep === 'confirming' && 'Waiting for the approval transaction to be confirmed on Hedera network... This may take a few moments.'}
                   {approvalStep === 'listing' && 'Creating your marketplace listing - please wait...'}
                 </p>
               </div>
@@ -311,51 +339,9 @@ const ListNFTModal = ({ nft, isOpen, onClose, onSuccess }) => {
             </div>
           </div>
 
-          {/* Listing Type */}
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Listing Type</label>
-            <div className={styles.radioGroup}>
-              <label className={styles.radioOption}>
-                <input
-                  type="radio"
-                  name="listingType"
-                  value="fixed"
-                  checked={listingType === 'fixed'}
-                  onChange={(e) => setListingType(e.target.value)}
-                  className={styles.radioInput}
-                />
-                <div className={styles.radioContent}>
-                  <div className={styles.radioTitle}>Fixed Price</div>
-                  <div className={styles.radioDescription}>
-                    Sell at a set price immediately
-                  </div>
-                </div>
-              </label>
-              
-              <label className={styles.radioOption}>
-                <input
-                  type="radio"
-                  name="listingType"
-                  value="auction"
-                  checked={listingType === 'auction'}
-                  onChange={(e) => setListingType(e.target.value)}
-                  className={styles.radioInput}
-                />
-                <div className={styles.radioContent}>
-                  <div className={styles.radioTitle}>Auction</div>
-                  <div className={styles.radioDescription}>
-                    Let buyers bid, highest wins
-                  </div>
-                </div>
-              </label>
-            </div>
-          </div>
-
           {/* Price */}
           <div className={styles.formGroup}>
-            <label className={styles.formLabel}>
-              {listingType === 'auction' ? 'Starting Price (HBAR)' : 'Price (HBAR)'}
-            </label>
+            <label className={styles.formLabel}>Price (HBAR)</label>
             <input
               type="number"
               step="0.01"
@@ -373,9 +359,7 @@ const ListNFTModal = ({ nft, isOpen, onClose, onSuccess }) => {
 
           {/* Duration */}
           <div className={styles.formGroup}>
-            <label className={styles.formLabel}>
-              {listingType === 'auction' ? 'Auction Duration' : 'Listing Duration'}
-            </label>
+            <label className={styles.formLabel}>Listing Duration</label>
             <select
               value={duration}
               onChange={(e) => setDuration(e.target.value)}

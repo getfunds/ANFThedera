@@ -481,6 +481,20 @@ export async function cancelMarketplaceListing(listingId, signer, accountId) {
   try {
     console.log('❌ Cancelling marketplace listing...', { listingId });
     
+    // Check if marketplace contract is deployed
+    if (!MARKETPLACE_CONTRACT_ID) {
+      throw new Error('Marketplace contract not deployed yet.');
+    }
+    
+    // Use dynamic import for Hedera SDK
+    const { 
+      ContractExecuteTransaction, 
+      ContractFunctionParameters, 
+      Hbar, 
+      AccountId, 
+      TransactionId 
+    } = await import('@hashgraph/sdk');
+    
     // Create contract execute transaction
     const contractExecuteTx = new ContractExecuteTransaction()
       .setContractId(MARKETPLACE_CONTRACT_ID)
@@ -489,10 +503,19 @@ export async function cancelMarketplaceListing(listingId, signer, accountId) {
         'cancelListing',
         new ContractFunctionParameters().addUint256(listingId)
       )
-      .setTransactionId(TransactionId.generate(AccountId.fromString(accountId)))
       .setMaxTransactionFee(new Hbar(2));
     
-    console.log('📤 Executing cancel listing transaction...');
+    // Only set TransactionId if not using Blade Wallet
+    if (!signer || (typeof signer.call !== 'function' && typeof signer.populateTransaction !== 'function')) {
+      contractExecuteTx.setTransactionId(TransactionId.generate(AccountId.fromString(accountId)));
+    }
+    
+    console.log('📤 Executing cancel listing transaction...', {
+      listingId,
+      contractId: MARKETPLACE_CONTRACT_ID,
+      isBladeWallet: !!(signer && (typeof signer.call === 'function' || typeof signer.populateTransaction === 'function'))
+    });
+    
     const result = await executeWithWallet(contractExecuteTx, signer, accountId);
     
     console.log('✅ Listing cancelled successfully:', result);

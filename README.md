@@ -121,7 +121,7 @@ The **ABFT (Asynchronous Byzantine Fault Tolerant)** consensus provided by HCS e
 We deployed our NFT Marketplace smart contract on HSCS because it combines **EVM compatibility** (allowing us to use Solidity and OpenZeppelin libraries) with **Hedera's fee structure and finality guarantees**. The marketplace contract handles listing creation, purchase execution, platform fee collection (2.5%), and NFT transfers—all while interacting seamlessly with HTS tokens via Hedera's precompiled contracts.
 
 #### Implementation Files
-- **`contracts/NFTMarketplace_HTS_Working.sol`** - Main marketplace smart contract (Solidity)
+- **`contracts/ANFTMarketplace.sol`** - Main marketplace smart contract (Solidity)
 - **`src/utils/marketplace.js`** - Marketplace interaction utilities and contract calls
 - **`src/utils/marketplaceHTSPurchaseFinal.js`** - Purchase execution logic with HTS integration
 - **`src/utils/marketplaceDiagnostics.js`** - Diagnostic tools for marketplace operations
@@ -244,104 +244,9 @@ By leveraging mirror nodes, ANFT delivers a **rich, data-driven user experience*
 
 ## 🏗 Architecture
 
-### **System Architecture Diagram**
+### **Architecture Diagram: Highlighting the Hedera integration points**
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         ANFT Platform (Frontend)                     │
-│                         Next.js 15 + React 19                        │
-└────────────────────┬────────────────────────────────────────────────┘
-                     │
-                     │ 1. User connects Blade Wallet
-                     │    (Account ID: 0.0.XXXXXX)
-                     │
-                     ▼
-          ┌──────────────────────┐
-          │   Blade Wallet SDK   │◄──── User signs all transactions
-          │  (@bladelabs/web3)   │      (DID, Attestation, Minting, Trading)
-          └──────────┬───────────┘
-                     │
-        ┌────────────┼────────────┐
-        │            │            │
-        ▼            ▼            ▼
-┌─────────────┐ ┌─────────────┐ ┌─────────────────────┐
-│   Hedera    │ │   Hedera    │ │   Hedera Smart      │
-│   Token     │ │  Consensus  │ │   Contract Service  │
-│   Service   │ │   Service   │ │   (Marketplace)     │
-│   (HTS)     │ │   (HCS)     │ │                     │
-│             │ │             │ │                     │
-└──────┬──────┘ └──────┬──────┘ └──────────┬──────────┘
-       │               │                   │
-       │ Mint NFTs     │ Store DIDs        │ Execute Trades
-       │ (Token ID)    │ & Attestations    │ (2.5% fee)
-       │               │ (Topic IDs)       │
-       │               │                   │
-       └───────────────┼───────────────────┘
-                       │
-                       │ All transactions recorded on
-                       ▼
-              ┌─────────────────┐
-              │  Hedera Network │
-              │   (Mainnet/     │
-              │    Testnet)     │
-              └────────┬────────┘
-                       │
-                       │ Transaction history & metadata
-                       ▼
-              ┌─────────────────┐
-              │  Mirror Nodes   │◄───── ANFT queries for:
-              │   (REST API)    │       • DID resolution
-              │                 │       • Transaction verification
-              │                 │       • Marketplace listings
-              │                 │       • NFT metadata
-              └─────────────────┘       • Attestation records
-
-
-┌─────────────────────────────────────────────────────────────────────┐
-│                      IPFS Storage Layer                              │
-│                      (Filebase S3 Gateway)                           │
-└────────────────────┬────────────────────────────────────────────────┘
-                     │
-                     │ Store NFT images & metadata
-                     │ (Permanent, content-addressed)
-                     │
-        ┌────────────┴────────────┐
-        │                         │
-        ▼                         ▼
-┌───────────────┐         ┌───────────────┐
-│  Image Files  │         │  Metadata     │
-│  (PNG/JPEG)   │         │  (JSON)       │
-│  IPFS CID:    │         │  IPFS CID:    │
-│  Qm...        │         │  Qm...        │
-└───────────────┘         └───────────────┘
-        │                         │
-        └────────────┬────────────┘
-                     │
-                     │ Referenced in NFT token metadata
-                     ▼
-              ┌─────────────────┐
-              │   HTS Token     │
-              │   Metadata URI  │
-              │  (ipfs://CID)   │
-              └─────────────────┘
-
-
-┌─────────────────────────────────────────────────────────────────────┐
-│                      Data Flow Summary                               │
-└─────────────────────────────────────────────────────────────────────┘
-
-User Action           → Hedera Service      → Result
-────────────────────────────────────────────────────────────────────
-1. Create DID         → HCS + HFS           → DID Topic + File
-2. Generate Art       → Ai/Painting         → Image Blob
-3. Hash Artwork       → Client-side SHA-256 → Content Hash
-4. Create Attestation → HCS                 → Attestation Message
-5. Upload to IPFS     → Filebase            → Image + Metadata CIDs
-6. Mint NFT           → HTS                 → Token ID + Serial #
-7. List NFT           → Smart Contract      → Listing ID
-8. Purchase NFT       → Smart Contract      → Transfer + HBAR payment
-9. View History       → Mirror Node         → Transaction records
-```
+![ANFT Architecture Diagram](./public/Adiagram.png)
 
 ---
 
@@ -420,8 +325,7 @@ User Action           → Hedera Service      → Result
 
 | Contract | File Path | Purpose |
 |----------|-----------|---------|
-| **NFT Marketplace (HTS)** | `contracts/NFTMarketplace_HTS_Working.sol` | Main marketplace contract with HTS integration |
-| **Prompt Vault** | `contracts/PromptVault.sol` | Encrypted prompt storage (optional) |
+| **NFT Marketplace ** | `contracts/ANFTMarketplace.sol` | Main marketplace contract with HTS/HSCS integration |
 
 ---
 
@@ -482,13 +386,13 @@ NEXT_PUBLIC_HEDERA_NETWORK=testnet
 **Deploy via Remix IDE (Recommended for testing)**
 
 1. Open [Remix IDE](https://remix.ethereum.org/)
-2. Create a new file: `NFTMarketplace.sol`
-3. Copy the contents from `contracts/NFTMarketplace_HTS_Working.sol`
+2. Create a new file: `ANFTMarketplace.sol`
+3. Copy the contents from `contracts/ANFTMarketplace.sol`
 4. Compile with Solidity 0.8.19
 5. Deploy using **Hedera Testnet** environment:
-   - Select "Injected Provider" (connect Blade Wallet)
-   - Constructor argument: Your platform fee recipient address (e.g., `0.0.4475114`)
-   - Deploy and note the contract ID (e.g., `0.0.16436066`)
+   - Select "Injected Provider" (connect Wallet)
+   - Constructor argument: Your platform fee recipient address must be an EVM address
+   - Deploy and note the contract EVM address and convert it to Hedera ID ( you can use Mirror node) (e.g., `0.0.16436066`)
 6. Add the contract ID to `.env.local` as `NEXT_PUBLIC_MARKETPLACE_CONTRACT_ID`
 
 # Marketplace Contract (deploy first, then add ID here)

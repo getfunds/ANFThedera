@@ -1,27 +1,45 @@
 .container {
-  max-width: 80rem;
+  max-width: 90rem;
   margin: 0 auto;
+  padding: 2rem 1.5rem;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
 .header {
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 3.5rem;
+  position: relative;
+}
+
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: -1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 4px;
+  background: var(--gradient-primary);
+  border-radius: 2px;
 }
 
 .title {
-  font-size: 2.25rem;
+  font-size: 3rem;
   font-weight: 900;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
   color: var(--neutral-900);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .subtitle {
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   color: var(--neutral-600);
-  max-width: 32rem;
+  max-width: 42rem;
   margin: 0 auto;
-  line-height: 1.7;
+  line-height: 1.8;
+  font-weight: 400;
 }
 
 .gradientText {
@@ -29,6 +47,13 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  display: inline-block;
+  animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% { filter: hue-rotate(0deg); }
+  50% { filter: hue-rotate(10deg); }
 }
 
 .walletWarning {
@@ -65,24 +90,26 @@
 
 .nftGrid {
   display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  margin-bottom: 3rem;
 }
 
 .nftCard {
   background: white;
-  border-radius: 1rem;
+  border-radius: 1.25rem;
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid #e5e7eb;
-  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 10px 15px rgba(0, 0, 0, 0.05);
+  border: 1.5px solid rgba(148, 163, 184, 0.1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+  backdrop-filter: blur(10px);
 }
 
 .nftCard:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-8px);
-  border-color: #d1d5db;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08), 0 20px 40px rgba(0, 0, 0, 0.08);
+  transform: translateY(-12px) scale(1.02);
+  border-color: rgba(124, 58, 237, 0.3);
 }
 
 .nftCard::before {
@@ -91,13 +118,30 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
+  height: 5px;
   background: var(--gradient-primary);
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.4s ease;
 }
 
 .nftCard:hover::before {
+  opacity: 1;
+}
+
+.nftCard::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.03) 0%, rgba(37, 99, 235, 0.03) 100%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.nftCard:hover::after {
   opacity: 1;
 }
 
@@ -874,4 +918,159 @@
 .promptCopyButton:hover {
   background: linear-gradient(135deg, #6d28d9, #1d4ed8);
   transform: translateY(-1px);
+}
+
+/* Danger button for cancelling listings */
+.actionButtonDanger {
+  flex: 1;
+  min-width: 120px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 0.625rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+.actionButtonDanger:hover:not(:disabled) {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
+}
+
+.actionButtonDanger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Listing info badge */
+.listingInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
+  border-radius: 0.625rem;
+  border: 1.5px solid rgba(16, 185, 129, 0.3);
+  min-width: 100px;
+}
+
+.listingLabel {
+  font-size: 0.75rem;
+  color: #059669;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.listingPrice {
+  font-size: 1rem;
+  color: #047857;
+  font-weight: 700;
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+}
+
+/* Button spinner for loading states */
+.buttonSpinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Enhanced filters card */
+.filtersCard {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.75rem;
+  margin-bottom: 2.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1.5px solid rgba(148, 163, 184, 0.1);
+}
+
+.filtersContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.filterButtons {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.connectedAccount {
+  font-size: 0.9rem;
+  color: #64748b;
+  padding: 0.5rem 1rem;
+  background: #f8fafc;
+  border-radius: 0.5rem;
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+  font-weight: 500;
+}
+
+/* Improved responsive design */
+@media (max-width: 768px) {
+  .container {
+    padding: 1.5rem 1rem;
+  }
+
+  .title {
+    font-size: 2.25rem;
+  }
+
+  .subtitle {
+    font-size: 1.125rem;
+  }
+
+  .nftGrid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .filtersContainer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filterButtons {
+    flex-direction: column;
+  }
+
+  .connectedAccount {
+    text-align: center;
+  }
+
+  .nftActions {
+    flex-direction: column;
+  }
+
+  .actionButtonPrimary,
+  .actionButtonSecondary,
+  .actionButtonDanger,
+  .listingInfo {
+    min-width: auto;
+    width: 100%;
+  }
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useWallet } from '../context/WalletContext';
 import { WALLET_TYPES } from '../utils/hashconnect';
 import styles from './WalletModal.module.css';
@@ -11,6 +12,31 @@ const WalletModal = () => {
     connect, 
     isLoading 
   } = useWallet();
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (showWalletModal) {
+      // Save current scroll position
+      const scrollY = window.scrollY;
+      
+      // Lock body scroll
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+      
+      return () => {
+        // Restore body scroll
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        document.body.style.overflow = '';
+        
+        // Restore scroll position
+        window.scrollTo(0, scrollY);
+      };
+    }
+  }, [showWalletModal]);
 
   if (!showWalletModal) return null;
 
