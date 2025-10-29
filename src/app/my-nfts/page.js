@@ -5,6 +5,7 @@ import { useWallet } from '../../context/WalletContext';
 import { decryptPrompt } from '../../utils/aiImageGeneration';
 import { getAccountNFTs, processNFTData, filterRealNFTs } from '../../utils/nftUtils';
 import ListNFTModal from '../../components/ListNFTModal';
+import ConnectWalletPrompt from '../../components/ConnectWalletPrompt';
 import Image from 'next/image';
 import Link from 'next/link';
 import styles from './page.module.css';
@@ -235,21 +236,7 @@ const MyNFTsPage = () => {
 
 
   if (!isConnected) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.walletWarning}>
-          <div className={styles.walletIcon}>
-            <svg className={styles.icon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-          <h2 className={styles.walletTitle}>Connect Your Wallet</h2>
-          <p className={styles.walletDescription}>
-            Please connect your Hedera wallet to view your NFT collection.
-          </p>
-        </div>
-      </div>
-    );
+    return <ConnectWalletPrompt title="Connect Your Wallet" description="Please connect your Hedera wallet to view your NFT collection." />;
   }
 
   if (isLoading) {

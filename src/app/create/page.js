@@ -15,6 +15,7 @@ import { useDID } from '../../hooks/useDID';
 import { finalizeAIArtwork, finalizePaintedArtwork } from '../../utils/artworkFinalization';
 import { createAttestation } from '../../utils/attestation';
 import DIDRegistrationModal from '../../components/DIDRegistrationModal';
+import ConnectWalletPrompt from '../../components/ConnectWalletPrompt';
 import styles from './page.module.css';
 
 const CreatePage = () => {
@@ -516,29 +517,7 @@ const CreatePage = () => {
   );
 
   if (!isConnected) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>
-            Create <span className={styles.gradientText}>AI Art NFTs</span>
-          </h1>
-          <p className={styles.subtitle}>
-            Transform your imagination into unique digital collectibles
-          </p>
-        </div>
-        
-        <div className={styles.walletWarning}>
-          <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
-          <div>
-            <strong>Connect Your Wallet</strong>
-            <p>Please connect your Hedera wallet to start creating AI art NFTs.</p>
-          </div>
-        </div>
-      
-      </div>
-    );
+    return <ConnectWalletPrompt title="Create AI Art NFTs" description="Please connect your Hedera wallet to start creating AI art NFTs." />;
   }
 
   return (

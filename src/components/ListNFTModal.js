@@ -4,10 +4,12 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { createMarketplaceListing } from '../utils/marketplace';
 import styles from './ListNFTModal.module.css';
 
 const ListNFTModal = ({ nft, isOpen, onClose, onSuccess }) => {
+  const router = useRouter();
   const [listingType, setListingType] = useState('fixed'); // fixed, auction
   const [price, setPrice] = useState('');
   const [duration, setDuration] = useState('604800'); // 7 days default
@@ -186,6 +188,10 @@ const ListNFTModal = ({ nft, isOpen, onClose, onSuccess }) => {
 
       // Reset form
       resetForm();
+
+      // Redirect to success page with NFT details
+      const successUrl = `/listing-success?name=${encodeURIComponent(nft.name)}&price=${encodeURIComponent(price)}&tokenId=${encodeURIComponent(nft.tokenId)}${nft.image ? `&image=${encodeURIComponent(nft.image)}` : ''}`;
+      router.push(successUrl);
 
     } catch (error) {
       console.error('❌ Error in listing process:', error);
