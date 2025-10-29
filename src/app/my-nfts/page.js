@@ -644,7 +644,7 @@ const MyNFTsPage = () => {
               </div>
               
               <div className={styles.promptText}>
-                <p className={styles.promptContent}>"{decryptedPrompt}"</p>
+                <p className={styles.promptContent}>&quot;{decryptedPrompt}&quot;</p>
               </div>
               
               <div className={styles.promptNote}>

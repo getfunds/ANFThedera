@@ -308,7 +308,7 @@ const ListNFTModal = ({ nft, isOpen, onClose, onSuccess }) => {
                 <div className={styles.infoIcon}>ℹ️</div>
                 <div className={styles.infoContent}>
                   <h4>List Your NFT</h4>
-                  <p>Enter your listing details below. We'll automatically handle approval if needed when you submit.</p>
+                  <p>Enter your listing details below. We&apos;ll automatically handle approval if needed when you submit.</p>
                 </div>
               </div>
               
@@ -428,7 +428,7 @@ const ListNFTModal = ({ nft, isOpen, onClose, onSuccess }) => {
               <span>{price ? (parseFloat(price) * parseInt(royaltyPercentage) / 10000).toFixed(2) : '0.00'} HBAR</span>
             </div>
             <div className={styles.feeRow + ' ' + styles.totalRow}>
-              <span><strong>You'll Receive</strong></span>
+              <span><strong>You&apos;ll Receive</strong></span>
               <span><strong>
                 {price ? (parseFloat(price) * (1 - 0.025 - parseInt(royaltyPercentage) / 10000)).toFixed(2) : '0.00'} HBAR
               </strong></span>

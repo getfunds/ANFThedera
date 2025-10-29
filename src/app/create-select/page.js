@@ -15,7 +15,7 @@ export default function CreateSelect() {
             Choose Your <span className={styles.gradientText}>Creation Method</span>
           </h1>
           <p className={styles.subtitle}>
-            Select how you'd like to create your NFT. Both methods provide a seamless path to minting and trading on Hedera.
+            Select how you&apos;d like to create your NFT. Both methods provide a seamless path to minting and trading on Hedera.
           </p>
         </div>
 
@@ -118,7 +118,7 @@ export default function CreateSelect() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <p>
-            <strong>Same seamless flow:</strong> Regardless of which method you choose, you'll follow an identical, 
+            <strong>Same seamless flow:</strong> Regardless of which method you choose, you&apos;ll follow an identical, 
             streamlined process to mint your NFT and list it on the marketplace.
           </p>
         </div>

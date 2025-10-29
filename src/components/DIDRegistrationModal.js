@@ -74,7 +74,7 @@ export default function DIDRegistrationModal({
               <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <p>Your DID is created once and stored on Hedera's secure network. You'll sign the creation with your Blade Wallet.</p>
+              <p>Your DID is created once and stored on Hedera&apos;s secure network. You&apos;ll sign the creation with your Blade Wallet.</p>
             </div>
             <div className={styles.buttonGroup}>
               <button onClick={onClose} className={styles.secondaryButton}>
@@ -157,7 +157,7 @@ export default function DIDRegistrationModal({
             </div>
             <h3 className={styles.stepTitle}>Create Your DID</h3>
             <p className={styles.stepDescription}>
-              Click below to create your Decentralized Identity. You'll be prompted to sign with your Blade Wallet.
+              Click below to create your Decentralized Identity. You&apos;ll be prompted to sign with your Blade Wallet.
             </p>
             
             <div className={styles.reviewBox}>

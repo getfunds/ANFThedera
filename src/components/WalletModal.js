@@ -178,7 +178,7 @@ const WalletModal = () => {
               </svg>
             </div>
             <div className={styles.helpContent}>
-              <h4 className={styles.helpTitle}>Don't have Blade Wallet?</h4>
+              <h4 className={styles.helpTitle}>Don&apos;t have Blade Wallet?</h4>
               <p className={styles.helpDescription}>
                 Download the Blade Wallet browser extension to get started with ANFT
               </p>

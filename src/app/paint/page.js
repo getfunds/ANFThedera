@@ -494,7 +494,7 @@ const PaintPage = () => {
               
               <div className={styles.modalFooter}>
                 <p className={styles.footerText}>
-                  💡 <strong>Tip:</strong> Use the "🎨 Mint NFT" button in the top toolbar to mint your artwork as an NFT on Hedera blockchain!
+                  💡 <strong>Tip:</strong> Use the &quot;🎨 Mint NFT&quot; button in the top toolbar to mint your artwork as an NFT on Hedera blockchain!
                 </p>
               </div>
             </div>

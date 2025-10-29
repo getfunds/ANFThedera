@@ -200,7 +200,7 @@ export default function Home() {
             Create <span className={styles.highlight}>Your Way</span>
           </h2>
           <p className={styles.sectionDescription}>
-            Whether you're a prompt engineer or a digital artist, 
+            Whether you&apos;re a prompt engineer or a digital artist, 
             we provide professional tools for your creative vision.
           </p>
         </div>
@@ -317,7 +317,7 @@ export default function Home() {
               <h3 className={styles.stepHeading}>Verify & Mint</h3>
               <p className={styles.stepText}>
                 Connect your wallet to establish your DID, generate content hash, 
-                create attestation, and mint your NFT on Hedera's secure network.
+                create attestation, and mint your NFT on Hedera&apos;s secure network.
               </p>
             </div>
           </div>
@@ -350,7 +350,7 @@ export default function Home() {
           <div className={styles.featureBox}>
             <div className={styles.featureIconBox}>⚡</div>
             <h4 className={styles.featureHeading}>Lightning Fast</h4>
-            <p className={styles.featureText}>Powered by Hedera's high-performance network with instant finality</p>
+            <p className={styles.featureText}>Powered by Hedera&apos;s high-performance network with instant finality</p>
           </div>
           <div className={styles.featureBox}>
             <div className={styles.featureIconBox}>🔒</div>
