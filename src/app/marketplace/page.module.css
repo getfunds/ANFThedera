@@ -798,6 +798,10 @@
   font-size: 0.75rem;
   font-weight: 500;
   border: 1px solid #d1d5db;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .attributeBadgeMore {

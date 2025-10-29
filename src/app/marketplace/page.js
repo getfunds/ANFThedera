@@ -671,10 +671,6 @@ const MarketplacePage = () => {
                 
                 <div className={styles.nftDetails}>
                   <div className={styles.detailRow}>
-                    <span>Seller:</span>
-                    <span className={styles.sellerAddress}>{formatAccountId(listing.seller)}</span>
-                  </div>
-                  <div className={styles.detailRow}>
                     <span>Token ID:</span>
                     <span className={styles.tokenId}>{listing.tokenId}</span>
                   </div>

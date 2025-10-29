@@ -11,7 +11,8 @@ const Navbar = () => {
 
   const formatAccountId = (id) => {
     if (!id) return '';
-    return `${id.slice(0, 8)}...${id.slice(-6)}`;
+    // Return full account ID without truncation
+    return id;
   };
 
   const handleConnectClick = () => {

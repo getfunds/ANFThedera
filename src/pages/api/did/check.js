@@ -26,14 +26,16 @@ export default async function handler(req, res) {
 
     console.log('🌐 Querying Mirror Node:', mirrorUrl);
 
-    // Query for topics where this account is the submit key holder
-    // DID topics have a specific memo pattern: "DID for {accountId}"
-    const topicsResponse = await fetch(
-      `${mirrorUrl}/api/v1/topics?limit=100&order=desc`
+    // Step 1: Query transactions for this account to find TopicCreateTransaction
+    // This is more reliable than querying all topics
+    console.log('🔍 Searching for TopicCreateTransaction from account...');
+    
+    const transactionsResponse = await fetch(
+      `${mirrorUrl}/api/v1/transactions?account.id=${accountId}&transactiontype=CONSENSUSCREATETOPIC&limit=100&order=desc`
     );
 
-    if (!topicsResponse.ok) {
-      console.warn('⚠️ Mirror Node query failed:', topicsResponse.status);
+    if (!transactionsResponse.ok) {
+      console.warn('⚠️ Mirror Node query failed:', transactionsResponse.status);
       return res.status(200).json({
         exists: false,
         did: null,
@@ -41,13 +43,56 @@ export default async function handler(req, res) {
       });
     }
 
-    const topicsData = await topicsResponse.json();
-    console.log('📋 Found topics, checking for DID...');
+    const transactionsData = await transactionsResponse.json();
+    console.log(`📋 Found ${transactionsData.transactions?.length || 0} topic creation transactions`);
 
-    // Filter topics by memo pattern
-    const didTopic = topicsData.topics?.find(topic => {
-      return topic.memo && topic.memo.includes(`DID for ${accountId}`);
-    });
+    // Find the DID topic by checking memo
+    let didTopic = null;
+    
+    if (transactionsData.transactions && transactionsData.transactions.length > 0) {
+      for (const tx of transactionsData.transactions) {
+        console.log(`🔍 Checking transaction: ${tx.transaction_id}`);
+        
+        // Get the entity_id (topic ID) from the transaction
+        if (tx.entity_id) {
+          let memo = '';
+          
+          // Try to decode memo (some transactions have memo_base64, others have memo)
+          if (tx.memo_base64) {
+            try {
+              memo = Buffer.from(tx.memo_base64, 'base64').toString('utf-8');
+            } catch (decodeError) {
+              console.warn('⚠️ Failed to decode memo_base64:', decodeError);
+            }
+          } else if (tx.memo) {
+            memo = tx.memo;
+          }
+          
+          console.log(`📝 Transaction memo: "${memo}"`);
+          
+          // Check if this is a DID topic
+          if (memo && memo.includes(`DID for ${accountId}`)) {
+            console.log('✅ Found DID topic in transaction:', tx.entity_id);
+            
+            // Fetch the topic details
+            const topicResponse = await fetch(`${mirrorUrl}/api/v1/topics/${tx.entity_id}`);
+            
+            if (topicResponse.ok) {
+              didTopic = await topicResponse.json();
+              didTopic.topic_id = tx.entity_id; // Ensure topic_id is set
+              didTopic.memo = memo; // Preserve the memo
+              break;
+            } else {
+              console.warn(`⚠️ Failed to fetch topic details for ${tx.entity_id}`);
+            }
+          }
+        }
+      }
+    }
+    
+    if (!didTopic) {
+      console.log('ℹ️ No DID topic found in transactions for this account');
+    }
 
     if (didTopic) {
       const topicId = didTopic.topic_id;

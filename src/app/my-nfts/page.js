@@ -41,14 +41,14 @@ const MyNFTsPage = () => {
         const processedNfts = await processNFTData(rawNfts, accountId);
         console.log('✅ Processed NFTs:', processedNfts);
         
-        // Filter out mock/test NFTs - only show real NFTs
+        // Filter out mock/test NFTs
         const realNfts = filterRealNFTs(processedNfts);
-        console.log('🎯 Real NFTs (filtered):', realNfts);
+        console.log('🎯 NFTs (filtered):', realNfts);
         
         setMyNfts(realNfts);
         
         if (realNfts.length === 0) {
-          console.log('ℹ️ No real NFTs found for this account');
+          console.log('ℹ️ No NFTs found for this account');
         } else {
           // Check listing status for each NFT
           checkAllListingStatuses(realNfts);
@@ -145,7 +145,7 @@ const MyNFTsPage = () => {
   const filteredNfts = myNfts.filter(nft => {
     if (filter === 'created') return nft.creator === accountId;
     if (filter === 'owned') return nft.owner === accountId && nft.creator !== accountId;
-    return true; // Show all real NFTs by default
+    return true; // Show all NFTs by default
   });
 
   const handleViewPrompt = async (nft) => {
@@ -340,15 +340,15 @@ const MyNFTsPage = () => {
           <svg className={styles.emptyIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          <h3 className={styles.emptyTitle}>No Real NFTs Found</h3>
+          <h3 className={styles.emptyTitle}>No NFTs Found</h3>
           <p className={styles.emptyDescription}>
             {filter === 'all' 
-              ? "You don't have any real NFTs yet. Start creating your first AI-generated NFT!"
-              : `No real NFTs match the "${filter}" filter.`
+              ? "You don't have any NFTs yet. Start creating your first AI-generated NFT!"
+              : `No NFTs match the "${filter}" filter.`
             }
           </p>
           <div className={styles.emptyNote}>
-            Only showing real NFTs from the Hedera blockchain. Mock/test NFTs are filtered out.
+            All NFTs from the Hedera blockchain will be displayed here.
           </div>
           {filter === 'all' && (
             <Link href="/create" className={styles.createButton}>
@@ -398,9 +398,6 @@ const MyNFTsPage = () => {
                     </div>
                   </div>
                 )}
-                <div className={`${styles.statusBadge} ${styles.statusBadgeSuccess} ${styles.statusBadgeLeft}`}>
-                  Real NFT
-                </div>
                 <div className={`${styles.statusBadge} ${styles.statusBadgeInfo} ${styles.statusBadgeRight}`}>
                   #{nft.serialNumber}
                 </div>
@@ -566,10 +563,6 @@ const MyNFTsPage = () => {
                     <div className={styles.modalDetailRow}>
                       <span>Serial Number:</span>
                       <span className={styles.modalDetailValue}>#{selectedNft.serialNumber}</span>
-                    </div>
-                    <div className={styles.modalDetailRow}>
-                      <span>Status:</span>
-                      <span className={styles.modalStatusReal}>Real NFT</span>
                     </div>
                     {selectedNft.createdAt && (
                       <div className={styles.modalDetailRow}>

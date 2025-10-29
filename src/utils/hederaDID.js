@@ -23,25 +23,28 @@ export async function checkExistingDID(accountId) {
   try {
     console.log('🔍 Checking for existing DID:', accountId);
     
-    // First check localStorage for cached DID
-    const stored = localStorage.getItem(`did_${accountId}`);
-    if (stored) {
-      try {
-        const didInfo = JSON.parse(stored);
-        console.log('✅ Found DID in localStorage:', didInfo.did);
-        return didInfo;
-      } catch (parseError) {
-        console.warn('⚠️ Failed to parse stored DID, removing invalid data');
-        localStorage.removeItem(`did_${accountId}`);
-      }
-    }
-    
-    // Then check server/registry
-    console.log('📡 Checking server for existing DID...');
+    // ALWAYS query the Hedera network first for source of truth
+    // This ensures DIDs are recognized across browsers and devices
+    console.log('📡 Querying Hedera Mirror Node for DID (source of truth)...');
     const response = await fetch(`/api/did/check?accountId=${accountId}`);
     
     if (!response.ok) {
-      console.warn(`⚠️ Server check failed with status ${response.status}`);
+      console.warn(`⚠️ Mirror Node check failed with status ${response.status}`);
+      
+      // Fallback to localStorage only if network is unavailable
+      console.log('⚠️ Network unavailable, checking localStorage as fallback...');
+      const stored = localStorage.getItem(`did_${accountId}`);
+      if (stored) {
+        try {
+          const didInfo = JSON.parse(stored);
+          console.log('📦 Found DID in localStorage (offline mode):', didInfo.did);
+          return didInfo;
+        } catch (parseError) {
+          console.warn('⚠️ Failed to parse stored DID, removing invalid data');
+          localStorage.removeItem(`did_${accountId}`);
+        }
+      }
+      
       return null;
     }
     
@@ -49,16 +52,37 @@ export async function checkExistingDID(accountId) {
     
     // Server returns { exists: true/false, did: {...} }
     if (data.exists && data.did) {
-      console.log('✅ Existing DID found on server:', data.did.did);
+      console.log('✅ DID found on Hedera network:', data.did.did);
+      
+      // Cache in localStorage for offline access
       localStorage.setItem(`did_${accountId}`, JSON.stringify(data.did));
+      
       return data.did;
     }
     
-    console.log('ℹ️ No existing DID found for this account');
+    console.log('ℹ️ No DID found on Hedera network for this account');
+    
+    // Clear any stale localStorage data
+    localStorage.removeItem(`did_${accountId}`);
+    
     return null;
     
   } catch (error) {
     console.error('❌ Error checking DID:', error);
+    
+    // Try localStorage as last resort
+    console.log('🔄 Attempting localStorage fallback...');
+    try {
+      const stored = localStorage.getItem(`did_${accountId}`);
+      if (stored) {
+        const didInfo = JSON.parse(stored);
+        console.log('📦 Using cached DID (error fallback):', didInfo.did);
+        return didInfo;
+      }
+    } catch (fallbackError) {
+      console.warn('⚠️ Fallback also failed:', fallbackError);
+    }
+    
     // Don't throw - just return null to allow DID creation
     return null;
   }
