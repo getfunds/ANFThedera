@@ -669,13 +669,12 @@ const CreatePage = () => {
                   <Image
                     src={image.imageBase64}
                     alt="Generated AI art"
-                    width={200}
-                    height={128}
+                    width={300}
+                    height={300}
                     className={styles.imagePreviewSmall}
                   />
                   <div className={styles.imageInfo}>
                     <div className={styles.promptText}>{image.prompt}</div>
-                    <div className={styles.modelTag}>{image.model}</div>
                     {selectedImage?.id === image.id && (
                       <div className={styles.selectedBadge}>
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none">

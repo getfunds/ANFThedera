@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useWallet } from '../context/WalletContext';
 import styles from './Navbar.module.css';
 
@@ -26,19 +27,15 @@ const Navbar = () => {
         <div className={styles.navContent}>
           <Link href="/" className={styles.logo}>
             <div className={styles.logoIcon}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="url(#logo-gradient)" stroke="white" strokeWidth="1.5" strokeLinejoin="round"/>
-                <path d="M2 17L12 22L22 17" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 12L12 17L22 12" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <defs>
-                  <linearGradient id="logo-gradient" x1="2" y1="2" x2="22" y2="12" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#0D9488"/>
-                    <stop offset="1" stopColor="#14B8A6"/>
-                  </linearGradient>
-                </defs>
-              </svg>
+              <Image
+                src="/anft.png"
+                alt="ANFT Logo"
+                width={40}
+                height={40}
+                className={styles.logoImage}
+                priority
+              />
             </div>
-            <span className={styles.logoTitle}>ANFT</span>
             <span className={styles.logoBadge}>Authentic</span>
           </Link>
 

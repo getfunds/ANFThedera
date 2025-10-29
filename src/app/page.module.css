@@ -576,8 +576,12 @@
    ============================================ */
 
 .featuresSection {
-  padding: 8rem 1.5rem;
-  background: white;
+  padding: 8rem 1.5rem 6rem;
+  background: linear-gradient(180deg, 
+    white 0%,
+    white 85%,
+    rgba(245, 255, 252, 1) 100%
+  );
 }
 
 .featuresGrid {
@@ -642,7 +646,15 @@
 .ctaSection {
   position: relative;
   padding: 8rem 1.5rem;
-  background: linear-gradient(135deg, #004E4E 0%, #002C2C 100%);
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 1) 0%,
+    rgba(230, 255, 250, 1) 5%,
+    rgba(200, 245, 240, 1) 10%,
+    rgba(150, 220, 210, 1) 30%,
+    rgba(100, 180, 170, 1) 60%,
+    #004E4E 80%,
+    #054f4f 100%
+  );
   overflow: hidden;
 }
 
