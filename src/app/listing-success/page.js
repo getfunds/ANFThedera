@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import styles from './page.module.css';
 
-export default function ListingSuccessPage() {
+function ListingSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [nftData, setNftData] = useState(null);
@@ -106,6 +106,27 @@ export default function ListingSuccessPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function ListingSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className={styles.container}>
+        <div className={styles.successCard}>
+          <div className={styles.iconWrapper}>
+            <div className={styles.checkmarkCircle}>
+              <svg className={styles.checkmark} viewBox="0 0 52 52">
+                <circle className={styles.checkmarkCirclePath} cx="26" cy="26" r="25" fill="none"/>
+              </svg>
+            </div>
+          </div>
+          <h1 className={styles.title}>Loading...</h1>
+        </div>
+      </div>
+    }>
+      <ListingSuccessContent />
+    </Suspense>
   );
 }
 
