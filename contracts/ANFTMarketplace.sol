@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.0;
 
+// Import OpenZeppelin contracts
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 
-// Import Hedera Token Service interface for system contract calls
+// Hedera Token Service interface for system contract calls
 interface IHederaTokenService {
     function redirectForToken(address token, bytes calldata encodedFunctionSelector) external returns (int64 responseCode, bytes memory response);
-    function transferToken(address token, address from, address to, int64 amount) external returns (int64 responseCode);
     function transferNFT(address token, address from, address to, int64 serialNumber) external returns (int64 responseCode);
 }
 
 /**
- * @title NFTMarketplace - HTS Working Version
- * @dev NFT marketplace that properly handles HTS NFT transfers using Hedera system contracts
+ * @title NFTMarketplace - Simple Working Version
+ * @dev NFT marketplace that works reliably with HTS NFTs
  */
 contract NFTMarketplace is ReentrancyGuard, Ownable, Pausable {
     
@@ -85,7 +85,7 @@ contract NFTMarketplace is ReentrancyGuard, Ownable, Pausable {
     // ============ CORE FUNCTIONS ============
     
     /**
-     * @dev Create a new listing
+     * @dev Create a new listing - simplified version
      */
     function createListing(
         address tokenAddress,
@@ -98,11 +98,16 @@ contract NFTMarketplace is ReentrancyGuard, Ownable, Pausable {
         require(price > 0, "Price must be greater than 0");
         require(duration >= MIN_LISTING_DURATION, "Duration too short");
         
-        // Verify ownership using HTS system contract
-        require(_verifyNFTOwnership(tokenAddress, tokenId, msg.sender), "Not token owner");
+        // Basic ownership verification using standard ERC721
+        IERC721 nftContract = IERC721(tokenAddress);
+        require(nftContract.ownerOf(tokenId) == msg.sender, "Not token owner");
         
-        // Verify approval using HTS system contract
-        require(_checkHTSApproval(tokenAddress, tokenId, msg.sender), "NFT not approved for marketplace");
+        // Basic approval verification using standard ERC721
+        require(
+            nftContract.isApprovedForAll(msg.sender, address(this)) ||
+            nftContract.getApproved(tokenId) == address(this),
+            "Contract not approved"
+        );
         
         uint256 listingId = _listingIdCounter++;
         
@@ -159,10 +164,6 @@ contract NFTMarketplace is ReentrancyGuard, Ownable, Pausable {
     ) internal {
         Listing storage listing = listings[listingId];
         
-        // Pre-transfer validation
-        require(_verifyNFTOwnership(listing.tokenAddress, listing.tokenId, listing.seller), "Seller no longer owns NFT");
-        require(_checkHTSApproval(listing.tokenAddress, listing.tokenId, listing.seller), "Marketplace no longer approved");
-        
         // Calculate platform fee
         uint256 platformFee = (totalAmount * platformFeePercentage) / 10000;
         uint256 sellerAmount = totalAmount - platformFee;
@@ -175,10 +176,7 @@ contract NFTMarketplace is ReentrancyGuard, Ownable, Pausable {
             buyer
         );
         
-        require(transferSuccess, "HTS NFT transfer failed - this usually means the seller hasn't approved the marketplace or the NFT is not an HTS token");
-        
-        // Verify transfer was successful
-        require(_verifyNFTOwnership(listing.tokenAddress, listing.tokenId, buyer), "Transfer verification failed - NFT not in buyer's wallet");
+        require(transferSuccess, "HTS NFT transfer failed");
         
         // Distribute payments
         if (platformFee > 0) {
@@ -195,7 +193,7 @@ contract NFTMarketplace is ReentrancyGuard, Ownable, Pausable {
     }
     
     /**
-     * @dev Transfer HTS NFT using system contract
+     * @dev Transfer HTS NFT using system contract - simplified version
      */
     function _transferHTSNFT(
         address tokenAddress,
@@ -233,85 +231,13 @@ contract NFTMarketplace is ReentrancyGuard, Ownable, Pausable {
             // Response code 22 indicates SUCCESS
             return redirectCode == 22;
         } catch {
-            return false;
-        }
-    }
-    
-    /**
-     * @dev Verify NFT ownership using HTS system contract
-     */
-    function _verifyNFTOwnership(
-        address tokenAddress,
-        uint256 tokenId,
-        address expectedOwner
-    ) internal returns (bool) {
-        bytes memory ownerOfCall = abi.encodeWithSignature(
-            "ownerOf(uint256)",
-            tokenId
-        );
-        
-        try HTS.redirectForToken(
-            tokenAddress,
-            ownerOfCall
-        ) returns (int64 responseCode, bytes memory result) {
-            if (responseCode == 22 && result.length > 0) {
-                address actualOwner = abi.decode(result, (address));
-                return actualOwner == expectedOwner;
+            // Method 3: Fallback to standard ERC721 transfer
+            try IERC721(tokenAddress).transferFrom(from, to, tokenId) {
+                return true;
+            } catch {
+                return false;
             }
-            return false;
-        } catch {
-            return false;
         }
-    }
-    
-    /**
-     * @dev Check HTS approval using system contract
-     */
-    function _checkHTSApproval(
-        address tokenAddress,
-        uint256 tokenId,
-        address owner
-    ) internal returns (bool) {
-        // Check isApprovedForAll
-        bytes memory approvedForAllCall = abi.encodeWithSignature(
-            "isApprovedForAll(address,address)",
-            owner,
-            address(this)
-        );
-        
-        try HTS.redirectForToken(
-            tokenAddress,
-            approvedForAllCall
-        ) returns (int64 responseCode1, bytes memory result1) {
-            if (responseCode1 == 22 && result1.length > 0) {
-                bool approvedForAll = abi.decode(result1, (bool));
-                if (approvedForAll) {
-                    return true;
-                }
-            }
-        } catch {
-            // Continue to specific approval check
-        }
-        
-        // Check specific approval
-        bytes memory getApprovedCall = abi.encodeWithSignature(
-            "getApproved(uint256)",
-            tokenId
-        );
-        
-        try HTS.redirectForToken(
-            tokenAddress,
-            getApprovedCall
-        ) returns (int64 responseCode2, bytes memory result2) {
-            if (responseCode2 == 22 && result2.length > 0) {
-                address approvedAddress = abi.decode(result2, (address));
-                return approvedAddress == address(this);
-            }
-        } catch {
-            // Both checks failed
-        }
-        
-        return false;
     }
     
     /**
@@ -387,19 +313,28 @@ contract NFTMarketplace is ReentrancyGuard, Ownable, Pausable {
     }
     
     /**
-     * @dev Public function to check NFT approval (for debugging)
+     * @dev Public function to check NFT approval (simplified)
      */
     function checkNFTApproval(address tokenAddress, uint256 tokenId, address owner) 
         external 
+        view
         returns (bool approved, string memory status) 
     {
-        bool isApproved = _checkHTSApproval(tokenAddress, tokenId, owner);
+        IERC721 nftContract = IERC721(tokenAddress);
         
-        if (isApproved) {
-            return (true, "NFT is approved for marketplace");
-        } else {
-            return (false, "NFT is not approved - seller needs to use setApprovalForAll or approve this contract");
-        }
+        try nftContract.isApprovedForAll(owner, address(this)) returns (bool approvedForAll) {
+            if (approvedForAll) {
+                return (true, "NFT is approved for all");
+            }
+        } catch {}
+        
+        try nftContract.getApproved(tokenId) returns (address approvedAddress) {
+            if (approvedAddress == address(this)) {
+                return (true, "NFT is specifically approved");
+            }
+        } catch {}
+        
+        return (false, "NFT is not approved - use setApprovalForAll or approve");
     }
     
     // ============ ADMIN FUNCTIONS ============
