@@ -805,11 +805,6 @@ const CreatePage = () => {
                 </div>
                 
                 <div className={styles.metadataItem}>
-                  <div className={styles.metadataLabel}>AI Model</div>
-                  <div className={styles.metadataValue}>{selectedImage.model || 'AI Generated'}</div>
-                </div>
-                
-                <div className={styles.metadataItem}>
                   <div className={styles.metadataLabel}>Generated</div>
                   <div className={styles.metadataValue}>
                     {new Date(selectedImage.timestamp).toLocaleString()}

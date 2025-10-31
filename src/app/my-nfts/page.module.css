@@ -304,14 +304,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
+  padding: 1.5rem 2rem;
   border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
 }
 
 .modalTitle {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1f2937;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
 }
 
 .closeButton {
@@ -695,25 +696,59 @@
   height: 2rem;
 }
 
-/* Modal Styles */
+/* Modal Styles - Enhanced */
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  z-index: 50;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modalContent {
+  background: white;
+  border-radius: 1rem;
+  max-width: 56rem;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .modalGrid {
   display: grid;
-  gap: 1.5rem;
+  gap: 2rem;
   grid-template-columns: 1fr 1fr;
+  padding: 2rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 968px) {
   .modalGrid {
     grid-template-columns: 1fr;
   }
@@ -722,9 +757,10 @@
 .modalImageContainer {
   position: relative;
   aspect-ratio: 1;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   overflow: hidden;
-  margin-bottom: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
 }
 
 .modalImage {
@@ -738,24 +774,33 @@
 }
 
 .modalNftInfo {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .modalNftTitle {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: #111827;
+  line-height: 1.2;
 }
 
 .modalNftDescription {
   color: #6b7280;
+  font-size: 0.95rem;
+  line-height: 1.6;
 }
 
 .modalDetails {
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  font-size: 0.875rem;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #e5e7eb;
 }
 
 .modalDetailRow {
@@ -806,11 +851,10 @@
 }
 
 .modalActions {
-  border-top: 1px solid #e5e7eb;
-  padding-top: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  margin-top: 1rem;
 }
 
 .modalButtonSecondary {

@@ -1,12 +1,17 @@
 /**
  * API Endpoint: Check if NFT has active listing
  * Returns active listing info for a specific NFT
+ * Optimized with caching for faster detection
  */
 
 import { ethers } from 'ethers';
 
 const MARKETPLACE_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT_ID;
 const NETWORK = process.env.NEXT_PUBLIC_HEDERA_NETWORK || 'testnet';
+
+// Cache for listing data (5 second TTL)
+const listingCache = new Map();
+const CACHE_TTL = 5000; // 5 seconds
 
 // Marketplace ABI for querying listings
 const MARKETPLACE_ABI = [
@@ -29,6 +34,20 @@ export default async function handler(req, res) {
 
     if (!MARKETPLACE_CONTRACT_ADDRESS) {
       return res.status(500).json({ error: 'Marketplace contract not configured' });
+    }
+
+    // Create cache key for this NFT
+    const cacheKey = `${tokenAddress}-${tokenId}`;
+    const now = Date.now();
+    
+    // Check cache first
+    if (listingCache.has(cacheKey)) {
+      const cached = listingCache.get(cacheKey);
+      if (now - cached.timestamp < CACHE_TTL) {
+        return res.status(200).json(cached.data);
+      } else {
+        listingCache.delete(cacheKey);
+      }
     }
 
     console.log(`🔍 Checking listing for token ${tokenAddress}, serial ${tokenId}`);
@@ -91,14 +110,12 @@ export default async function handler(req, res) {
 
           if (!isExpired) {
             console.log(`✅ Found active listing ${listingId} for NFT`);
-            console.log(`   Token Address Match: ${normalizedListingAddress} === ${normalizedSearchAddress}`);
-            console.log(`   Token ID Match: ${listingTokenId.toString()} === ${tokenId}`);
             
             // Convert from tinybars to HBAR (1 HBAR = 100,000,000 tinybars)
             const priceInHbar = Number(listingPrice) / 100_000_000;
             const highestBidInHbar = Number(listingHighestBid) / 100_000_000;
             
-            return res.status(200).json({
+            const response = {
               isListed: true,
               listing: {
                 listingId: listingId.toString(),
@@ -112,7 +129,15 @@ export default async function handler(req, res) {
                 highestBid: highestBidInHbar.toString(),
                 highestBidder: listingHighestBidder
               }
+            };
+            
+            // Cache the result
+            listingCache.set(cacheKey, {
+              data: response,
+              timestamp: Date.now()
             });
+            
+            return res.status(200).json(response);
           }
         }
       } catch (listingError) {
@@ -122,7 +147,16 @@ export default async function handler(req, res) {
     }
 
     console.log(`ℹ️ No active listing found for NFT`);
-    return res.status(200).json({ isListed: false, listing: null });
+    
+    const notListedResponse = { isListed: false, listing: null };
+    
+    // Cache negative result too (shorter TTL)
+    listingCache.set(cacheKey, {
+      data: notListedResponse,
+      timestamp: Date.now()
+    });
+    
+    return res.status(200).json(notListedResponse);
 
   } catch (error) {
     console.error('❌ Error checking listing:', error);

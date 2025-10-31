@@ -22,9 +22,10 @@ export default async function handler(req, res) {
       ? 'https://mainnet-public.mirrornode.hedera.com'
       : 'https://testnet.mirrornode.hedera.com';
 
-    // Standard memo for all ANFT DIDs: "ANFT DID"
-    // Base64: QU5GVCBESUQ=
-    const ANFT_DID_MEMO_BASE64 = 'QU5GVCBESUQ=';
+    // Standard memo for all ANFT DIDs with new format: "DID on ANFT"
+    // This memo is used for DIDs with the identifier_topicId format
+    // Base64: RElEIG9uIEFORlQ=
+    const ANFT_DID_MEMO_BASE64 = 'RElEIG9uIEFORlQ=';
 
     // Query for CONSENSUSSUBMITMESSAGE transactions with ANFT DID memo
     const txQueryUrl = `${mirrorUrl}/api/v1/transactions?account.id=${accountId}&transactiontype=CONSENSUSSUBMITMESSAGE&limit=100&order=desc`;
@@ -43,15 +44,14 @@ export default async function handler(req, res) {
     const txCount = transactionsData.transactions?.length || 0;
     
     if (txCount > 0) {
-      // Search for transaction with ANFT DID memo
+      // Search for transaction with ANFT DID memo (new format only)
       for (const tx of transactionsData.transactions) {
         // Check if memo matches ANFT DID standard
         if (tx.memo_base64 === ANFT_DID_MEMO_BASE64 && tx.entity_id) {
           // Found DID! entity_id is the topic ID
           const topicId = tx.entity_id;
-          const did = `did:hedera:${network}:${topicId}`;
           
-          // Fetch first message from topic to get DID details
+          // Fetch first message from topic to get DID details including identifier
           try {
             const msgQueryUrl = `${mirrorUrl}/api/v1/topics/${topicId}/messages?limit=1&order=asc`;
             const messagesResponse = await fetch(msgQueryUrl);
@@ -66,10 +66,28 @@ export default async function handler(req, res) {
                 try {
                   const didMessage = JSON.parse(messageContent);
                   
+                  // The DID in the message should have the full format with identifier
+                  const fullDid = didMessage.did;
+                  
+                  // Extract identifier from the full DID
+                  let identifier = null;
+                  if (fullDid && fullDid.includes('_')) {
+                    const parts = fullDid.split(':');
+                    if (parts.length >= 4) {
+                      // Format: did:hedera:network:identifier_topicId
+                      const lastPart = parts[3];
+                      const underscoreIndex = lastPart.indexOf('_');
+                      if (underscoreIndex > 0) {
+                        identifier = lastPart.substring(0, underscoreIndex);
+                      }
+                    }
+                  }
+                  
                   return res.status(200).json({
                     exists: true,
                     did: {
-                      did: did,
+                      did: fullDid,
+                      identifier: identifier,
                       topicId: topicId,
                       accountId: accountId,
                       controller: didMessage.controller || accountId,
@@ -79,19 +97,42 @@ export default async function handler(req, res) {
                     }
                   });
                 } catch (parseError) {
-                  // Message exists but couldn't parse, return basic info
+                  // Message exists but couldn't parse, construct DID without identifier
+                  // This handles legacy DIDs that might not have the identifier format
+                  const legacyDid = `did:hedera:${network}:${topicId}`;
+                  return res.status(200).json({
+                    exists: true,
+                    did: {
+                      did: legacyDid,
+                      topicId: topicId,
+                      accountId: accountId,
+                      network: network,
+                      createdAt: message.consensus_timestamp
+                    }
+                  });
                 }
               }
             }
           } catch (msgError) {
-            // Couldn't fetch message, return basic info
+            // Couldn't fetch message, return basic info with legacy format
+            const legacyDid = `did:hedera:${network}:${topicId}`;
+            return res.status(200).json({
+              exists: true,
+              did: {
+                did: legacyDid,
+                topicId: topicId,
+                accountId: accountId,
+                network: network
+              }
+            });
           }
           
-          // Return basic DID info even if message fetch failed
+          // Fallback: Return basic DID info with legacy format
+          const legacyDid = `did:hedera:${network}:${topicId}`;
           return res.status(200).json({
             exists: true,
             did: {
-              did: did,
+              did: legacyDid,
               topicId: topicId,
               accountId: accountId,
               network: network

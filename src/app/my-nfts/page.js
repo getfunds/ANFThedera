@@ -67,11 +67,13 @@ const MyNFTsPage = () => {
     loadUserNfts();
   }, [isConnected, accountId]);
 
-  // Check listing status for all NFTs
+  // Check listing status for all NFTs with immediate updates
   const checkAllListingStatuses = async (nfts) => {
-    const statusMap = {};
+    // Clear previous status
+    setNftListingStatus({});
     
-    for (const nft of nfts) {
+    // Process all NFTs in parallel for faster detection
+    const promises = nfts.map(async (nft) => {
       try {
         const response = await fetch(
           `/api/marketplace/check-listing?tokenAddress=${nft.tokenId}&tokenId=${nft.serialNumber}`
@@ -80,15 +82,21 @@ const MyNFTsPage = () => {
         if (response.ok) {
           const data = await response.json();
           if (data.isListed) {
-            statusMap[`${nft.tokenId}-${nft.serialNumber}`] = data.listing;
+            const listingKey = `${nft.tokenId}-${nft.serialNumber}`;
+            // Update state immediately when a listing is found
+            setNftListingStatus(prev => ({
+              ...prev,
+              [listingKey]: data.listing
+            }));
           }
         }
       } catch (error) {
         console.warn(`Failed to check listing for ${nft.tokenId}:`, error);
       }
-    }
+    });
     
-    setNftListingStatus(statusMap);
+    // Wait for all checks to complete
+    await Promise.all(promises);
   };
 
   // Cancel listing function

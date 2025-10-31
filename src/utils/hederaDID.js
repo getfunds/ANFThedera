@@ -2,6 +2,8 @@
  * Hedera DID - Client-Side with Blade Wallet Signing
  * 
  * Uses Blade wallet signer to sign all DID-related transactions
+ * DID Format: did:hedera:<network>:<identifier>_<topicId>
+ * Where identifier is a base58-encoded SHA-256 hash of the public key
  */
 
 import {
@@ -13,6 +15,59 @@ import {
   TopicId,
   FileId
 } from '@hashgraph/sdk';
+
+/**
+ * Base58 encoding alphabet (Bitcoin/IPFS compatible)
+ */
+const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+/**
+ * Encode bytes to base58
+ * @param {Uint8Array} bytes - Bytes to encode
+ * @returns {string} Base58 encoded string
+ */
+function encodeBase58(bytes) {
+  if (bytes.length === 0) return '';
+  
+  // Convert bytes to a big integer
+  let num = 0n;
+  for (let i = 0; i < bytes.length; i++) {
+    num = num * 256n + BigInt(bytes[i]);
+  }
+  
+  // Convert to base58
+  let encoded = '';
+  while (num > 0n) {
+    const remainder = Number(num % 58n);
+    encoded = BASE58_ALPHABET[remainder] + encoded;
+    num = num / 58n;
+  }
+  
+  // Handle leading zeros
+  for (let i = 0; i < bytes.length && bytes[i] === 0; i++) {
+    encoded = BASE58_ALPHABET[0] + encoded;
+  }
+  
+  return encoded;
+}
+
+/**
+ * Generate SHA-256 hash and encode to base58
+ * @param {string} data - Data to hash (hex string)
+ * @returns {Promise<string>} Base58 encoded hash
+ */
+async function hashToBase58(data) {
+  // Convert hex string to bytes
+  const hexBytes = data.match(/.{1,2}/g).map(byte => parseInt(byte, 16));
+  const dataBytes = new Uint8Array(hexBytes);
+  
+  // Generate SHA-256 hash
+  const hashBuffer = await crypto.subtle.digest('SHA-256', dataBytes);
+  const hashArray = new Uint8Array(hashBuffer);
+  
+  // Encode to base58
+  return encodeBase58(hashArray);
+}
 
 /**
  * Check if an account has an existing DID
@@ -144,10 +199,14 @@ export async function createAndRegisterDID(accountId, profile = {}) {
     console.log('📋 Creating DID topic...');
     const topicId = await createTopicWithBlade(bladeSigner, bladeAccountId);
     
-    // Step 3: Generate DID identifier
+    // Step 3: Generate DID identifier from public key
     const network = process.env.NEXT_PUBLIC_HEDERA_NETWORK || 'testnet';
-    const did = `did:hedera:${network}:${topicId}`;
+    console.log('🔑 Generating unique identifier from public key...');
+    const identifier = await hashToBase58(keyPair.publicKey);
+    const did = `did:hedera:${network}:${identifier}_${topicId}`;
     console.log('✅ DID generated:', did);
+    console.log('   📝 Identifier:', identifier);
+    console.log('   📋 Topic ID:', topicId);
     
     // Step 4: Create DID Document
     const didDocument = {
@@ -201,12 +260,14 @@ export async function createAndRegisterDID(accountId, profile = {}) {
     // Store DID info in localStorage
     const didInfo = {
       did: did,
+      identifier: identifier,
       topicId: topicId,
       fileId: fileId,
       document: didDocument,
       network: network,
       controller: bladeAccountId,
       privateKey: keyPair.privateKey,
+      publicKey: keyPair.publicKey,
       createdAt: Date.now()
     };
     
@@ -454,8 +515,8 @@ async function publishDIDMessage(bladeSigner, topicId, message) {
     
     const messageJson = JSON.stringify(message);
     
-    // Standard memo for all ANFT DIDs
-    const ANFT_DID_MEMO = 'ANFT DID';
+    // Standard memo for all ANFT DIDs with new format (identifier_topicId)
+    const ANFT_DID_MEMO = 'DID on ANFT';
     
     // Create message transaction with standardized memo
     const messageTx = new TopicMessageSubmitTransaction()
@@ -631,7 +692,7 @@ export async function recordNFTCreation(didInfo, nftData) {
 
 /**
  * Get all NFTs created by a DID
- * @param {string} did - DID identifier or topicId
+ * @param {string} did - DID identifier (format: did:hedera:network:identifier_topicId) or topicId
  * @returns {Promise<Array>} Array of NFT creation records
  */
 export async function getDIDCreatedNFTs(did) {
@@ -642,7 +703,16 @@ export async function getDIDCreatedNFTs(did) {
     let topicId;
     if (did.startsWith('did:hedera:')) {
       const parts = did.split(':');
-      topicId = parts[3];
+      const lastPart = parts[3]; // identifier_topicId or just topicId (legacy)
+      
+      // Check for new format with identifier
+      if (lastPart.includes('_')) {
+        // New format: identifier_topicId
+        topicId = lastPart.split('_')[1];
+      } else {
+        // Legacy format: just topicId
+        topicId = lastPart;
+      }
     } else {
       topicId = did;
     }
@@ -702,7 +772,7 @@ export async function getDIDCreatedNFTs(did) {
 
 /**
  * Format DID for display
- * @param {string} did - Full DID
+ * @param {string} did - Full DID (format: did:hedera:network:identifier_topicId)
  * @returns {string} Abbreviated DID
  */
 export function formatDID(did) {
@@ -711,10 +781,25 @@ export function formatDID(did) {
   const parts = did.split(':');
   if (parts.length < 4) return did;
   
-  const identifier = parts[3];
-  if (identifier.length <= 20) return did;
+  const lastPart = parts[3]; // identifier_topicId
   
-  return `${parts[0]}:${parts[1]}:${parts[2]}:${identifier.substring(0, 8)}...${identifier.substring(identifier.length - 8)}`;
+  // Check if it contains the new format with identifier
+  if (lastPart.includes('_')) {
+    const [identifier, topicId] = lastPart.split('_');
+    
+    // Abbreviate identifier if it's long
+    if (identifier.length > 16) {
+      const shortIdentifier = `${identifier.substring(0, 8)}...${identifier.substring(identifier.length - 4)}`;
+      return `${parts[0]}:${parts[1]}:${parts[2]}:${shortIdentifier}_${topicId}`;
+    }
+    
+    return did; // Return full DID if identifier is short enough
+  }
+  
+  // Legacy format without identifier (just topicId)
+  if (lastPart.length <= 20) return did;
+  
+  return `${parts[0]}:${parts[1]}:${parts[2]}:${lastPart.substring(0, 8)}...${lastPart.substring(lastPart.length - 8)}`;
 }
 
 export default {

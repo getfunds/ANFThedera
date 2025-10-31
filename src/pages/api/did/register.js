@@ -3,6 +3,7 @@
  * 
  * Creates a new Hedera DID for a user's account
  * Uses operator account to create resources but associates with user
+ * DID Format: did:hedera:<network>:<identifier>_<topicId>
  */
 
 import { 
@@ -14,9 +15,60 @@ import {
   FileAppendTransaction
 } from '@hashgraph/sdk';
 
-// Simple DID generation
-function generateDIDIdentifier(network, topicId) {
-  return `did:hedera:${network}:${topicId}`;
+/**
+ * Base58 encoding alphabet (Bitcoin/IPFS compatible)
+ */
+const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+/**
+ * Encode bytes to base58
+ * @param {Uint8Array} bytes - Bytes to encode
+ * @returns {string} Base58 encoded string
+ */
+function encodeBase58(bytes) {
+  if (bytes.length === 0) return '';
+  
+  let num = 0n;
+  for (let i = 0; i < bytes.length; i++) {
+    num = num * 256n + BigInt(bytes[i]);
+  }
+  
+  let encoded = '';
+  while (num > 0n) {
+    const remainder = Number(num % 58n);
+    encoded = BASE58_ALPHABET[remainder] + encoded;
+    num = num / 58n;
+  }
+  
+  for (let i = 0; i < bytes.length && bytes[i] === 0; i++) {
+    encoded = BASE58_ALPHABET[0] + encoded;
+  }
+  
+  return encoded;
+}
+
+/**
+ * Generate SHA-256 hash and encode to base58
+ * @param {Uint8Array} data - Data to hash
+ * @returns {Promise<string>} Base58 encoded hash
+ */
+async function hashToBase58(data) {
+  const crypto = await import('crypto');
+  const hash = crypto.createHash('sha256').update(data).digest();
+  return encodeBase58(new Uint8Array(hash));
+}
+
+/**
+ * Generate DID identifier with unique identifier from public key
+ * @param {string} network - Hedera network
+ * @param {string} topicId - Topic ID
+ * @param {PublicKey} publicKey - Public key to generate identifier from
+ * @returns {Promise<string>} Full DID
+ */
+async function generateDIDIdentifier(network, topicId, publicKey) {
+  const publicKeyBytes = publicKey.toBytes();
+  const identifier = await hashToBase58(publicKeyBytes);
+  return `did:hedera:${network}:${identifier}_${topicId}`;
 }
 
 function createDIDDocument(did, accountId, publicKey) {
@@ -82,8 +134,8 @@ export default async function handler(req, res) {
 
     console.log('✅ DID topic created:', topicId);
 
-    // Generate DID
-    const did = generateDIDIdentifier(network, topicId);
+    // Generate DID with unique identifier from public key
+    const did = await generateDIDIdentifier(network, topicId, publicKey);
 
     console.log('✅ DID generated:', did);
 
@@ -154,9 +206,13 @@ export default async function handler(req, res) {
       timestamp: new Date().toISOString()
     };
 
+    // Standard memo for all ANFT DIDs with new format
+    const ANFT_DID_MEMO = 'DID on ANFT';
+
     const messageTx = new TopicMessageSubmitTransaction()
       .setTopicId(topicId)
-      .setMessage(JSON.stringify(didMessage));
+      .setMessage(JSON.stringify(didMessage))
+      .setTransactionMemo(ANFT_DID_MEMO);
 
     const messageResponse = await messageTx.execute(client);
     await messageResponse.getReceipt(client);

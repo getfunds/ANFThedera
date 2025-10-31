@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { useWallet } from '../../context/WalletContext';
 import { 
   getMarketplaceListings
@@ -16,6 +17,7 @@ import Link from 'next/link';
 import styles from './page.module.css';
 
 const MarketplacePage = () => {
+  const router = useRouter();
   const { isConnected, accountId } = useWallet();
   const [listings, setListings] = useState([]);
   const [filteredListings, setFilteredListings] = useState([]);
@@ -288,11 +290,25 @@ const MarketplacePage = () => {
       
       console.log('✅ NFT purchased successfully with automatic transfer:', result);
       
-      // Update UI with detailed success message for the CORRECT approach
+      setShowBuyModal(false);
+      
+      // Handle different result scenarios
       if (result.success && result.transferSuccess) {
-        alert(`🎉 PURCHASE SUCCESSFUL WITH PRE-APPROVED ALLOWANCES!\n\n🎨 ${listing.metadata.name}\n💰 Price: ${listing.priceInHBAR} HBAR\n\n✅ Seller Pre-Approval: Verified\n✅ Token Association: ${result.associationSuccess ? 'Success' : 'Already associated'}\n✅ Payment: ${result.paymentTransactionId}\n✅ NFT Transfer: ${result.transferTransactionId}\n\n🚀 The NFT has been automatically transferred using the seller's pre-approved allowances!\nThis is the correct way Hedera NFT marketplaces work!`);
+        // Success - redirect to success page
+        const successUrl = new URL('/purchase-success', window.location.origin);
+        successUrl.searchParams.set('name', listing.metadata.name || 'NFT');
+        successUrl.searchParams.set('tokenId', listing.tokenAddress);
+        successUrl.searchParams.set('serialNumber', listing.tokenId);
+        successUrl.searchParams.set('transactionId', result.paymentTransactionId || result.transferTransactionId);
+        successUrl.searchParams.set('price', listing.priceInHBAR);
+        if (listing.metadata.image) {
+          successUrl.searchParams.set('image', listing.metadata.image);
+        }
+        
+        router.push(successUrl.toString());
       } else if (result.success && result.paymentSuccess) {
         alert(`⚠️ Payment successful but NFT transfer failed.\n\n${listing.metadata.name}\nPayment: ${result.paymentTransactionId}\n\nIssue: ${result.errorMessage}\n\n🔧 This means the marketplace smart contract has an issue with HTS NFT transfers.\nYour payment was successful - the smart contract logic needs to be fixed.`);
+        await loadMarketplaceListings();
       } else if (result.associationAttempted && !result.associationSuccess) {
         alert(`❌ Token association failed.\n\n${result.errorMessage}\n\nYou need to associate with the token before purchasing.\nNo payment was made - please try again.`);
       } else if (result.errorMessage && result.errorMessage.includes('pre-approved')) {
@@ -300,10 +316,6 @@ const MarketplacePage = () => {
       } else {
         alert(`❌ Purchase failed: ${result.errorMessage}`);
       }
-      setShowBuyModal(false);
-      
-      // Refresh listings
-      await loadMarketplaceListings();
       
     } catch (error) {
       console.error('❌ Error purchasing NFT:', error);
