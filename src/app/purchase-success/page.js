@@ -144,7 +144,7 @@ function PurchaseSuccessContent() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <p className={styles.infoText}>
-            Your NFT is now in your wallet and can be viewed in the "My NFTs" section. 
+            Your NFT is now in your wallet and can be viewed in the &quot;My NFTs&quot; section. 
             The transaction has been recorded on the Hedera network.
           </p>
         </div>
